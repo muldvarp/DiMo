@@ -36,10 +36,14 @@ Running
 
 Issue
 
-> dimo.byte -h
+```
+dimo.byte -h
+```
 
 respectively
 
-> dimo.native -h
+```
+dimo.native -h
+```
 
 to see info on the use via the command line.
