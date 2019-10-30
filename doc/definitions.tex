@@ -1,0 +1,47 @@
+% !TEX root =  main.tex
+
+\newcommand{\DiMo}{\textsc{DiMo}\xspace}
+
+\newcommand{\Var}{\ensuremath{\mathcal{V}}}
+\newcommand{\AL}{\textup{AL}}
+\newcommand{\FO}{\textup{FO}}
+\newcommand{\logtrue}{\ensuremath{\mathtt{t\!t}}}
+\newcommand{\logfalse}{\ensuremath{\mathtt{f\!f}}}
+\newcommand{\imp}{\ensuremath{\rightarrow}}
+\newcommand{\biimp}{\ensuremath{\leftrightarrow}}
+\newcommand{\length}[1]{\ensuremath{\mathit{len}(#1)}}
+\newcommand{\size}[1]{\ensuremath{|#1|}}
+\newcommand{\arity}[1]{\ensuremath{\mathit{arity}(#1)}}
+\newcommand{\free}[1]{\ensuremath{\mathit{free}(#1)}}
+\newcommand{\bound}[1]{\ensuremath{\mathit{bnd}(#1)}}
+\newcommand{\weight}[1]{\ensuremath{|\!|#1|\!|}}
+\newcommand{\sub}[1]{\ensuremath{\mathit{Sub}(#1)}}
+\newcommand{\Mod}[1]{\ensuremath{\mathit{Mod}(#1)}}
+\newcommand{\Th}[1]{\ensuremath{\mathit{Th}(#1)}}
+\newcommand{\satequiv}{\ensuremath{\equiv_{\mathsf{sat}}}}
+\newcommand{\yields}{\ensuremath{\Longrightarrow}}
+\newcommand{\sem}[3]{\ensuremath{[\![ #1 ]\!]_{#2}^{#3}}}
+
+\renewcommand{\phi}{\varphi}
+
+\newcommand{\term}[1]{\ensuremath{\texttt{#1}\ }}
+\newcommand{\nonterm}[1]{\ensuremath{\langle\mathit{#1}\rangle\ }}
+\newcommand{\optional}[1]{\ensuremath{\Big[\ #1\ \Big]}}
+\newcommand{\enumset}[1]{\ensuremath{\Big\{#1\Big\}}}
+\newcommand{\group}[1]{\ensuremath{\Big(#1\Big)}}
+\newcommand{\altn}{\ensuremath{\enspace\rule[-2mm]{.4pt}{6mm}}\enspace}
+
+%%%%%%%%%%%%%%% TODO comments %%%%%%%%%%%
+\newcounter{TODOcounter}
+\newcommand{\TODO}[1]{%
+	\stepcounter{TODOcounter}%
+	{{\color{red}\scriptsize\bf$^{(\arabic{TODOcounter})}$}}%
+	\marginpar[\fbox{%
+		\parbox{3cm}{\scriptsize{\color{red}\raggedleft%
+				$^{({\bf{\arabic{TODOcounter}}})}$%
+				#1}}}]%
+	{\fbox{\parbox{3cm}{\scriptsize{\color{red}\raggedright% 
+					$^{({\bf{\arabic{TODOcounter}}})}$%
+					#1}}}}%
+}
+
