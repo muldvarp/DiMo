@@ -1,4 +1,4 @@
-PDFLATEX=/usr/local/texlive/2018/bin/x86_64-darwin/pdflatex
+PDFLATEX=pdflatex
 
-doc: main.tex definitions.tex
-	$(PDFLATEX) main.tex
+doc: dimo.tex definitions.tex
+	$(PDFLATEX) dimo.tex

@@ -1,4 +1,6 @@
-SATISFIABLE QueensCover(n,k)
+(* Is it possible to cover every cell on an n x n chess board with at most k queens? *)
+
+MODELS QueensCover(n,k)
 PROPOSITIONS D
 PARAMETERS n: {3,..}, k: {1,..} WITH k <= n
 FORMULAS 

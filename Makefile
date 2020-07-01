@@ -1,11 +1,13 @@
+#OCAMLBUILD=ocamlbuild -verbose 3
 OCAMLBUILD=ocamlbuild
 OPTIONS=-use-ocamlfind
-PACKAGES=ocaml-sat-solvers
+PACKAGES=-pkgs ocaml-sat-solvers
 SRC=src
 MAIN=dimo
-INCLUDES=$(SRC)
-LIBS=unix
-PARAMS=-I $(INCLUDES) -lib $(LIBS) -pkgs $(PACKAGES)
+#INCLUDES=-I $(SRC) -I ocaml-sat-solvers/_build/src -I ocaml-sat-solvers/_build/src/internalsat -I ocaml-satsolvers/_build/src/minisat
+INCLUDES=-I $(SRC)
+LIBS=-lib unix
+PARAMS=$(INCLUDES) $(LIBS) $(PACKAGES)
 SED=sed
 
 PDFLATEX=/usr/local/texlive/2018/bin/x86_64-darwin/pdflatex

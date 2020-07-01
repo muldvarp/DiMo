@@ -37,7 +37,7 @@ rule token = parse
  | "True"                                             { TTRUE }
  | "False"                                            { TFALSE }
  | ['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as id      { TVAR(id) }
- | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as id      { TPARAM(id) }
+ | ['a'-'z']['a'-'z' 'A'-'Z' '0'-'9' '_']*'\''* as id      { TPARAM(id) }
  | ['0'-'9']+ as lxm                                  { TINT(int_of_string lxm) }
  | '+'                                                { TPLUS }
  | '*'                                                { TMULT }
