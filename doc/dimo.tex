@@ -322,10 +322,10 @@ The syntax of the \DiMo input language is given by the following grammar.
                  \altn & \term{EQUIVALENT} \nonterm{Formula} \term{TO} \nonterm{Formula} \\
                  \altn & \term{MODELS} \nonterm{Formula} \\
 \nonterm{Props} ::=\ & \epsilon \altn \nonterm{Ident} \Big(\term{,} \nonterm{Ident}\Big)^* \\
-\nonterm{Ident} ::=\ & \enumset{\texttt{A},\ldots,\texttt{Z}}\enumset{\texttt{A},\ldots,\texttt{Z},\texttt{a}\ldots,\texttt{z},\texttt{0},\ldots,\texttt{9}}^* \\
+\nonterm{Ident} ::=\ & \enumset{\texttt{A},\ldots,\texttt{Z}}\enumset{\texttt{A},\ldots,\texttt{Z},\texttt{a}\ldots,\texttt{z},\texttt{0},\ldots,\texttt{9},\term{\_}}^*\enumset{\term{'}}^* \\
 \nonterm{Params} ::=\ & \nonterm{Var} \term{:} \nonterm{Domain} \Big( \term{,} \nonterm{Var} \term{:} \nonterm{Domain} \Big)^* 
                            \optional{\term{WITH} \nonterm{Constr}} \\
-\nonterm{Var} ::=\ & \enumset{\texttt{a},\ldots,\texttt{z}}\enumset{\texttt{A},\ldots,\texttt{Z},\texttt{a}\ldots,\texttt{z},\texttt{0},\ldots,\texttt{9}}^* \\ 
+\nonterm{Var} ::=\ & \enumset{\texttt{a},\ldots,\texttt{z}}\enumset{\texttt{A},\ldots,\texttt{Z},\texttt{a}\ldots,\texttt{z},\texttt{0},\ldots,\texttt{9},\term{\_}}^*\enumset{\term{'}}^* \\ 
 \nonterm{Domain} ::=\ & \term{Nat} \\
                 \altn & \term{\{} \nonterm{Number} \term{,} \optional{\nonterm{Number} \term{,}} \term{..} 
                                          \optional{\term{,} \nonterm{Number}} \term{\}} \\
