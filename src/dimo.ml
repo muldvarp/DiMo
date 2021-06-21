@@ -70,7 +70,7 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
                fun eval ->
                fun b ->
                fun lits -> let vs = showEval eval in
-                           "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^
+                           "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " " ^
                              (if b then "" else "un") ^ "satisfiable." ^
                                (if b then "\n  Satisfying assignment: " ^ showModel lits else "")
              in
@@ -81,55 +81,31 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
                fun eval ->
                fun b ->
                fun lits -> let vs = showEval eval in
-                           "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^
+                           "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " " ^
                              (if not b then "" else "in") ^ "valid." ^
                                (if b then "\n  Refuting assignment: " ^ showModel lits else "")
              in
              new simpleSatEngine props params constrs (SNeg sphi) defs report
-          | ProblemEquiv(props, params, constrs, sphi, spsi, defs) -> (*
-             output 1 1 ("#1: " ^ showScheme sphi ^ "\n");
-             output 1 1 ("#2: " ^ showScheme spsi ^ "\n");
-             let esound = new simpleSatEngine props params constrs (SAnd(sphi,SNeg(spsi))) defs
-                            (fun eval -> fun b -> fun lits ->
-                                                  let vs = showEval eval in
-                                                  "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^ (if b then "un" else "") ^ "sound." ^
-                                                      (if b then "\n  An assignment satisfying the first but not the second formula is: " ^
-                                                                   String.concat ", " (List.map (function Lit(_,_,_) as l -> showFormula l
-                                                                                                        | _ -> failwith "main.engine: Expected a literal.")
-                                                                                         lits)
-                                                       else ""))
-             in
-             let ecomplete = new simpleSatEngine props params constrs (SAnd(spsi,SNeg(sphi))) defs
-                               (fun eval -> fun b -> fun lits ->
-                                                     let vs = showEval eval in
-                                                     "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^ (if b then "in" else "") ^ "complete." ^
-                                                       (if b then "\n  An assignment satisfying the second but not the first formula is: " ^
-                                                                    String.concat ", " (List.map (function Lit(_,_,_) as l -> showFormula l
-                                                                                                         | _ -> failwith "main.engine: Expected a literal.")
-                                                                                          lits)
-                                                        else ""))
-             in
-             new combinedEngine [| esound; ecomplete |]
-          | ProblemGenEquiv(props, params, constrs, sphi, spsi, defs) -> *)
+          | ProblemEquiv(props, params, constrs, sphi, spsi, defs) ->
              output 1 1 ("#1: " ^ showScheme sphi ^ "\n");
              output 1 1 ("#2: " ^ showScheme spsi ^ "\n");
              let esound = new simplePi2Engine props params constrs sphi spsi defs
                             (fun b -> fun eval -> fun lits ->
                                          let vs = showEval eval in
-                                         "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^ (if not b then "un" else "") ^ "sound." ^
+                                         "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " " ^ (if not b then "un" else "") ^ "sound." ^
                                            (if not b then "\n  A model of the first but not the second formula is: " ^ showModel lits else ""))
              in
              let ecomplete = new simplePi2Engine props params constrs spsi sphi defs
                                (fun b -> fun eval -> fun lits ->
                                             let vs = showEval eval in
-                                            "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " " ^ (if not b then "in" else "") ^ "complete." ^
+                                            "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " " ^ (if not b then "in" else "") ^ "complete." ^
                                               (if not b then "\n  A model of the second but not the first formula is: " ^ showModel lits else ""))
              in
              new combinedEngine [| esound; ecomplete |]
           | ProblemModels(props, params, constrs, sphi, defs) ->
              output 1 1 (showScheme sphi ^ "\n");
              let initreport = fun eval -> let vs = showEval eval in
-                                          "Instance " ^ vs ^ " " ^ String.make (38 - (String.length vs)) '.' ^ " "
+                                          "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " "
              in
              let eachreport = fun b -> fun lits -> fun n -> if not b then (string_of_int n ^ " model" ^ (if n<>1 then "s" else "") ^ " found.")
                                                             else "  Found model " ^ showModel lits 

@@ -14,6 +14,10 @@ PDFLATEX=/usr/local/texlive/2018/bin/x86_64-darwin/pdflatex
 
 all: byte native
 
+debug: version
+	$(OCAMLBUILD) $(PARAMS) $(SRC)/$(MAIN).d.byte
+	$(OCAMLBUILD) $(PARAMS) $(SRC)/$(MAIN).p.native
+
 byte: version
 	$(OCAMLBUILD) $(PARAMS) $(SRC)/$(MAIN).byte
 

@@ -31,5 +31,5 @@ FORMULAS
 
   ExactlyMofN_rec(n,m) = Choose(m,0,n)
 
-  Choose(0,l,n) = True
+  Choose(0,l,n) = FORALL i:{l+1,..,n}. -A(i)
   Choose(m,l,n) = FORSOME i:{l+1,..,n-m+1}. A(i) & (FORALL j:{l+1,..,i-1}. -A(j)) & Choose(m-1,i,n)
