@@ -3,7 +3,8 @@
 %{
   open Alschemes		   
 %}
-/* The Grammar */
+      /* The Grammar */
+%token <string> TSTRING
 %token <string> TVAR
 %token <string> TPARAM
 %token <int> TINT
@@ -12,11 +13,13 @@
 %token TPLUS, TMULT, TDIV
 %token TMIN TMAX
 %token TAND TOR TNEG TIMP TBIIMP TTRUE TFALSE
-%token TALL TSOME TCOLON TDOT
+%token TALL TSOME TFOR TDO TDONE
+%token TCOLON TDOT TSEMICOLON
 %token TLPAREN TRPAREN TLBRACE TRBRACE
 %token TCOMMA TDOTS
 %token TNAT
-%token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO
+%token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
+%token TSKIP TPRINT TIF TTHEN TELSE
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
 %token TEOF
@@ -50,10 +53,10 @@
 %%
 start:	  main TEOF                                                     { $1 }
 ;
-main:	  TSATISFIABLE scheme propositions parameters definitions            { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5) }
-	| TVALID scheme propositions parameters definitions                  { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5) }
-	| TEQUIVALENT scheme TTO scheme propositions parameters definitions  { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
-	| TMODELS scheme propositions parameters definitions                 { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5) }
+main:	  TSATISFIABLE scheme propositions parameters definitions output           { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5) }
+	| TVALID scheme propositions parameters definitions output                 { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5) }
+	| TEQUIVALENT scheme TTO scheme propositions parameters definitions output { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
+	| TMODELS scheme propositions parameters definitions output                { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5) }
 
 ;
 propositions:                                                           { StringSet.empty }
@@ -128,10 +131,8 @@ paramorconsts:
 
 scheme:
           TTRUE                                                         { STrue }
-	| TFALSE                                                        { SFalse } 
-        | TVAR                                                          { SPred($1,[]) }
-        | TVAR TLPAREN TRPAREN                                          { SPred($1,[]) }
-        | TVAR TLPAREN terms TRPAREN                                    { SPred($1,$3) }
+	| TFALSE                                                        { SFalse }
+	| proposition                                                   { $1 }
         | TNEG scheme                                                   { SNeg($2) }
         | scheme TAND scheme                                            { SAnd($1,$3) }
 	| scheme TOR scheme                                             { SOr($1,$3) }
@@ -142,6 +143,12 @@ scheme:
 	| TLPAREN scheme TRPAREN                                        { $2 }
 ;
 
+proposition:
+          TVAR                                                          { SPred($1,[]) }
+        | TVAR TLPAREN TRPAREN                                          { SPred($1,[]) }
+        | TVAR TLPAREN terms TRPAREN                                    { SPred($1,$3) }
+;
+	  
 symbset:
           TLBRACE terms TRBRACE                                         { SmallSet($2) }
         | TLBRACE term TCOMMA term TCOMMA TDOTS TCOMMA term TRBRACE     { Enumeration($2,$4,$8) }
@@ -174,4 +181,28 @@ term:
 terms:
 	  term                                                          { [ $1 ] }
 	| term TCOMMA terms                                             { $1 :: $3 }
+;
+
+output:
+          TOUTPUT outprog                                               { $2 }
+;
+
+outprog:
+          TSKIP                                                         { PSkip }	    
+	| TPRINT TSTRING                                                { PPRint($2) }
+	| TIF bexpr TTHEN outprog TELSE outprog                         { PITE($2,$4,$6) }
+	| TIF bexpr TTHEN outprog                                       { PITE($2,$4,PSkip) }
+        | TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2,$4,BinOp("+",$4,TCONST(1),(+)),$6,$8) } 
+        | TFOR TVAR TEQ term TCOMMA term TTO term TDO outprog TDONE     { PFor($2,$4,$6,$8,$10) } 
+	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
+	| TLPAREN outprog TRPAREN                                       { $2 }   
+;
+
+bexpr:
+	  THASMODEL                                                     { HasModel }
+	| proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
+	                                                                              | _ -> failwith "Parser failure. Cannot match proposition." } 
+	| TNEG bexpr                                                    { BNeg($2) }
+	| bexpr TAND bexpr                                              { BAnd($1,$3) }
+	| bexpr TOR bexpr                                               { BOr($1,$3) }
 ;

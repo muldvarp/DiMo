@@ -5,15 +5,22 @@ open Parser        (* The type token is defined in parser.mli *)
 rule token = parse
  | ([' ' '\t'])+                                      { token lexbuf  }
  | ['\n']                                             { Lexing.new_line lexbuf; token lexbuf  }   (* [' ' '\t' '\n' '\r']                               { token lexbuf } *)    (* skip blanks *)
+ | "\"" [^ '\"']* "\""  as str                        { TSTRING(str) }
  | "(*" [^ '*']* '*' ( [^ ')'] [^ '*']* '*' )* ')'    { token lexbuf }  (* skip comments *)
  | "PROPOSITIONS"                                     { TPROPOSITIONS }
  | "PARAMETERS"                                       { TPARAMETERS }
  | "FORMULAS"                                         { TFORMULAS }
+ | "OUTPUT"                                           { TOUTPUT }
  | "SATISFIABLE"                                      { TSATISFIABLE }
  | "VALID"                                            { TVALID }
  | "EQUIVALENT"                                       { TEQUIVALENT }
  | "MODELS"                                           { TMODELS }
  | "TO"                                               { TTO }
+ | "IF"                                               { TIF }
+ | "THEN"                                             { TTHEN }
+ | "ELSE"                                             { TELSE }
+ | "SKIP"                                             { TSKIP }
+ | "PRINT"                                            { TPRINT }
  | "FORALL"                                           { TALL }
  | "FORSOME"                                          { TSOME }
  | "MIN"                                              { TMIN }
@@ -60,6 +67,7 @@ rule token = parse
  | ".."                                               { TDOTS }
  | '.'                                                { TDOT }
  | ':'                                                { TCOLON }
+ | ';'                                                { TSEMICOLON }
  | ','                                                { TCOMMA }
  | eof                                                { TEOF }
 

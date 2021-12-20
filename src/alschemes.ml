@@ -217,32 +217,31 @@ let showScheme =
   show
     
 
-
+let rec evalTerm eval = function Const(i)        -> i
+                               | Param(x)        -> (try
+                                                       match ParamEval.find x eval with
+						         Int v -> v
+                                                                    (* | _     -> failwith ("Parameter `" ^ x ^ "´ has wrong type!") *)
+                                                     with Not_found -> failwith ("Undefined parameter `" ^ x ^ "'"))
+                               | BinOp(_,t,t',f) -> f (evalTerm eval t) (evalTerm eval t')
+                               | UnOp(_,t,f)     -> f (evalTerm eval t)
+                               | SetOp(_,m,f)    -> f (evalSet eval m)
+and evalSet eval = function SmallSet(tl)          -> IntSet.of_list (List.map (evalTerm eval) tl)
+                          | Enumeration(t,t',t'') -> let first = evalTerm eval t in
+                                                     let second = evalTerm eval t' in
+                                                     let last = evalTerm eval t'' in
+                                                     let step = second-first in
+                                                     if last < first then
+                                                       IntSet.empty
+                                                     else if step <= 0 then
+                                                       failwith ("Illegal definition of enumeration set: {" ^ string_of_int first ^
+                                                                   (if step <> 1 then "," ^ string_of_int second else "") ^ ",..," ^ string_of_int last ^ "}")
+                                                     else 
+                                                       let rec makeSet m f = if f <= last then makeSet (IntSet.add f m) (f+step) else m in
+                                                       makeSet IntSet.empty first
+                          | BinSetOp(_,m1,m2,f)   -> f (evalSet eval m1) (evalSet eval m2)                                                        
+                                                   
 let instantiate sphi defs eval =
-  let rec evalTerm eval = function Const(i)        -> i
-                                 | Param(x)        -> (try
-                                                        match ParamEval.find x eval with
-						        Int v -> v
-                                                     (* | _     -> failwith ("Parameter `" ^ x ^ "´ has wrong type!") *)
-                                                       with Not_found -> failwith ("Undefined parameter `" ^ x ^ "'"))
-                                 | BinOp(_,t,t',f) -> f (evalTerm eval t) (evalTerm eval t')
-                                 | UnOp(_,t,f)     -> f (evalTerm eval t)
-                                 | SetOp(_,m,f)    -> f (evalSet eval m)
-  and evalSet eval = function SmallSet(tl)          -> IntSet.of_list (List.map (evalTerm eval) tl)
-                            | Enumeration(t,t',t'') -> let first = evalTerm eval t in
-                                                       let second = evalTerm eval t' in
-                                                       let last = evalTerm eval t'' in
-                                                       let step = second-first in
-                                                       if last < first then
-                                                         IntSet.empty
-                                                       else if step <= 0 then
-                                                         failwith ("Illegal definition of enumeration set: {" ^ string_of_int first ^
-                                                                     (if step <> 1 then "," ^ string_of_int second else "") ^ ",..," ^ string_of_int last ^ "}")
-                                                       else 
-                                                         let rec makeSet m f = if f <= last then makeSet (IntSet.add f m) (f+step) else m in
-                                                         makeSet IntSet.empty first
-                            | BinSetOp(_,m1,m2,f)   -> f (evalSet eval m1) (evalSet eval m2)                                                        
-  in
   let rec instScheme pos eval =
     function STrue              -> if pos then And [] else Or []
 	   | SFalse             -> if pos then Or [] else And []
