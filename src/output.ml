@@ -32,15 +32,30 @@ type output = Text of string
 let normaloutput = [ Text("Instance "); WaitFor ParameterEvaluation; FillWithDots; WaitFor Result; LineBreak ]
  *)
 
+(*
 type bexpr = HasModel
            | Prop of string * (intTerm list)
            | BNeg of bexpr
            | BAnd of bexpr * bexpr
            | BOr of bexpr * bexpr
-                  
+*)
+
+type bexpr = BNeg of bexpr
+           | BAnd of bexpr * bexpr
+           | BOr of bexpr * bexpr
+
+(*type bexprUnDef = bexpr
+                | HasModel
+                | IsSat
+                | IsValid
+                | IsEquiv
+                | Prop of string * (intTerm list)
+               *)
+
 type program = PSkip
              | PPrint of string
-             | PITE of bexpr * program * program
+             (*| PITE of bexpr * program * program
+             | PITEU of bexprUnDef * program * program * program*)
              | PFor of string * intTerm * intTerm * intTerm * program
              | PComp of program * program
 
@@ -56,6 +71,7 @@ let rec run eval solver =
   function PSkip -> ()
          | PPrint(s) -> print_string(s)
          | PComp(p1,p2) -> run eval solver p1; run eval solver p2
+         (*
          | PITE(phi,p1,p2) -> let beval = function HasModel -> (match solver#get_solve_result with
                                                                  SolveSatisfiable -> true
                                                                | _ -> false)
@@ -70,4 +86,42 @@ let rec run eval solver =
                                 run eval solver p1
                               else
                                 run eval solver p2
+                                *)
+         (*| PITE(phi, p1, p2) -> let beval = function BAnd(phi,psi) -> (beval phi) && (beval psi)
+                                                    | BOr(phi,psi) -> (beval phi) || (beval psi)
+                                                    | BNeg(phi) -> not beval phi
+                                in let b = beval phi in
+                                if b then
+                                    run eval solver p1
+                                else
+                                    run eval solver p2
+
+         | PITEU(phi, p1, p2, p3) -> let beval = function HasModel -> (match solver#get_solve_result with
+                                                                            SolveSatisfiable -> true
+                                                                            | SolveUnsatisfiable -> false
+                                                                            | _ -> -1)
+                                                          | IsSat -> (match solver#get_solve_result with
+                                                                            SolveSatisfiable -> true
+                                                                            | SolveUnsatisfiable -> false
+                                                                            | _ -> -1)
+                                                          | IsEquiv -> (match solver#get_solve_result with
+                                                                            SolveEquiv -> true
+                                                                            | SolveUnequiv -> false
+                                                                            | _ -> -1)
+                                                          | IsValid -> (match solver#get_solve_result with
+                                                                            SolveValid -> true
+                                                                            | SolveUnvalid -> true
+                                                                            | _ -> -1)
+                                                          | Prop(x,ts) -> let ps = List.map (evalTerm eval) ts in
+                                                                          solver#get_variable_bool (x,ps)
+                                                          (* todo antowoten des Sovers anpassen *)
+                                     in let b = beval phi in
+                                     match b with
+                                        true -> run eval solver p1
+                                        | false -> run eval solver p2
+                                        | -1 -> run eval solver p3
+
+
+        *)
+
          | PFor(i,s,n,t,p) -> () (* TODO! implementieren *)

@@ -1,7 +1,7 @@
 /* File parser.mly */
 /* The Header */
 %{
-  open Alschemes		   
+  open Alschemes
 %}
       /* The Grammar */
 %token <string> TSTRING
@@ -19,10 +19,12 @@
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
-%token TSKIP TPRINT TIF TTHEN TELSE
+%token TSKIP TEXIT TPRINT TIF TTHEN TELSE TUNDEF
+%token THASMODEL TISSAT TISVALID TISEQUIV
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
 %token TEOF
+
 
 /* lowest precedence */
 %right TCOMMA
@@ -183,26 +185,39 @@ terms:
 	| term TCOMMA terms                                             { $1 :: $3 }
 ;
 
+
+
+
 output:
           TOUTPUT outprog                                               { $2 }
 ;
 
 outprog:
-          TSKIP                                                         { PSkip }	    
-	| TPRINT TSTRING                                                { PPRint($2) }
+      TSKIP                                                         { PSkip }
+    | TEXIT                                                         { PExit }
+	| TPRINT TSTRING                                                { PPrint($2) }
 	| TIF bexpr TTHEN outprog TELSE outprog                         { PITE($2,$4,$6) }
 	| TIF bexpr TTHEN outprog                                       { PITE($2,$4,PSkip) }
-        | TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2,$4,BinOp("+",$4,TCONST(1),(+)),$6,$8) } 
-        | TFOR TVAR TEQ term TCOMMA term TTO term TDO outprog TDONE     { PFor($2,$4,$6,$8,$10) } 
+	| TIF bexprUnDef TTHEN outprog TELSE outprog TUNDEF outprog      { PITEU($2,$4, $6, $8) }
+	| TIF bexprUnDef TTHEN outprog TELSE outprog                     { PITEU($2,$4, $6, PSkip) }
+	| TIF bexprUnDef TTHEN outprog TUNDEF outprog                    { PITEU($2,$4, PSkip, $6) }
+	| TIF bexprUnDef TTHEN outprog                                   { PITEU($2,$4, PSkip, PSkip) }
+        | TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2,$4,BinOp("+",$4,Const(1),(+)),$6,$8) }
+        | TFOR TVAR TEQ term TCOMMA term TTO term TDO outprog TDONE     { PFor($2,$4,$6,$8,$10) }
 	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
-	| TLPAREN outprog TRPAREN                                       { $2 }   
 ;
 
+
 bexpr:
-	  THASMODEL                                                     { HasModel }
-	| proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
-	                                                                              | _ -> failwith "Parser failure. Cannot match proposition." } 
-	| TNEG bexpr                                                    { BNeg($2) }
-	| bexpr TAND bexpr                                              { BAnd($1,$3) }
-	| bexpr TOR bexpr                                               { BOr($1,$3) }
+    | TNEG bexpr                                                    { BNeg($2) }
+    | bexpr TAND bexpr                                              { BAnd($1,$3) }
+    | bexpr TOR bexpr                                               { BOr($1,$3) }
 ;
+
+bexprUnDef:
+    | THASMODEL                                                     { BUHasModel }
+    | TISSAT                                                        { BUIsSat }
+    | TISVALID                                                      { BUIsValid }
+    | TISEQUIV                                                      { BUIsEquiv }
+;
+

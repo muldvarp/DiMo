@@ -19,8 +19,14 @@ rule token = parse
  | "IF"                                               { TIF }
  | "THEN"                                             { TTHEN }
  | "ELSE"                                             { TELSE }
+ | "UNDEF"                                            { TUNDEF}
  | "SKIP"                                             { TSKIP }
+ | "EXIT"                                             { TEXIT}
  | "PRINT"                                            { TPRINT }
+ | "HASMODEL"                                         { THASMODEL}
+ | "ISSAT"                                            { TISSAT}
+ | "ISVALID"                                          { TISVALID}
+ | "ISEQUIV"                                          { TISEQUIV}
  | "FORALL"                                           { TALL }
  | "FORSOME"                                          { TSOME }
  | "MIN"                                              { TMIN }

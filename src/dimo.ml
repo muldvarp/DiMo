@@ -4,6 +4,8 @@ open Enumerators;;
 open Engine ;;
 open Arg;;
 open Basics;;
+open Output;;
+(* todo... Wharscheinlich sinvoll Basic zu entfernen  *)
 
 module CommandLine =
 struct
@@ -17,6 +19,7 @@ struct
 
   let satsolv = Satsolvers.get_list ()
 
+  (* TODO anpassung an die output Language *)
   let speclist =  [("--solver", String (fun s -> Satsolvers.set_default s),
                     "\n     select sat solver; " ^ if satsolv = [] then "no sat solvers included!" else (
 			                             "default is " ^ ((Satsolvers.get_default ())#identifier) ^
