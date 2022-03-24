@@ -1,4 +1,5 @@
 open Alschemes;;
+open Satwrapper;;
 
 let max_col = 40
 let debug_level = ref 0
@@ -43,19 +44,17 @@ type bexpr = HasModel
 type bexpr = BNeg of bexpr
            | BAnd of bexpr * bexpr
            | BOr of bexpr * bexpr
-
-(*type bexprUnDef = bexpr
-                | HasModel
-                | IsSat
-                | IsValid
-                | IsEquiv
-                | Prop of string * (intTerm list)
-               *)
+           | HasModel
+           | IsSat
+           | IsValid
+           | IsEquiv
+           | Prop of string * (intTerm list)
 
 type program = PSkip
+             | PExit
              | PPrint of string
-             (*| PITE of bexpr * program * program
-             | PITEU of bexprUnDef * program * program * program*)
+             | PPrintf of string * string
+             | PITEU of bexpr * program * program * program
              | PFor of string * intTerm * intTerm * intTerm * program
              | PComp of program * program
 
@@ -69,59 +68,91 @@ type program = PSkip
                       
 let rec run eval solver =
   function PSkip -> ()
+         | PExit -> () (*TODO programm ab hier nicht mehr ausführen      exception schmeißen außerhalb abfangen*)
          | PPrint(s) -> print_string(s)
+         | PPrintf(s, var) -> ()(*TODO ausgeben der aktuellen Variablen werte       *)
          | PComp(p1,p2) -> run eval solver p1; run eval solver p2
-         (*
-         | PITE(phi,p1,p2) -> let beval = function HasModel -> (match solver#get_solve_result with
-                                                                 SolveSatisfiable -> true
-                                                               | _ -> false)
-                                                 | Prop(x,ts) -> let ps = List.map (evalTerm eval) ts in
-                                                                 solver#get_variable_bool (x,ps)
-                                                 | BAnd(phi,psi) -> (beval phi) && (beval psi)
-                                                 | BOr(phi,psi) -> (beval phi) || (beval psi)
-                                                 | BNeg(phi) -> not (beval phi)
-                              in
-                              let b = beval phi in
-                              if b then
-                                run eval solver p1
-                              else
-                                run eval solver p2
-                                *)
-         (*| PITE(phi, p1, p2) -> let beval = function BAnd(phi,psi) -> (beval phi) && (beval psi)
-                                                    | BOr(phi,psi) -> (beval phi) || (beval psi)
-                                                    | BNeg(phi) -> not beval phi
-                                in let b = beval phi in
-                                if b then
-                                    run eval solver p1
-                                else
-                                    run eval solver p2
+         | PITEU(phi, p1, p2, p3) -> begin
+                                        let rec beval = function
+                                        (* todo antowoten des Solvers anpassen *)
+                                        | BAnd(phi, psi) -> begin
+                                                                let e1 = (beval phi) in
+                                                                let e2 = (beval psi) in
+                                                                match (e1, e2) with
+                                                                    | (0, _) -> 0
+                                                                    | (_, 0) -> 0
+                                                                    | (1, 1) -> 1
+                                                                    | (1, -1) -> -1
+                                                                    | (-1, 1) -> -1
+                                                                    | (-1, -1) -> -1
+                                                                    | _ -> -1
+                                                            end
 
-         | PITEU(phi, p1, p2, p3) -> let beval = function HasModel -> (match solver#get_solve_result with
-                                                                            SolveSatisfiable -> true
-                                                                            | SolveUnsatisfiable -> false
-                                                                            | _ -> -1)
-                                                          | IsSat -> (match solver#get_solve_result with
-                                                                            SolveSatisfiable -> true
-                                                                            | SolveUnsatisfiable -> false
-                                                                            | _ -> -1)
-                                                          | IsEquiv -> (match solver#get_solve_result with
-                                                                            SolveEquiv -> true
-                                                                            | SolveUnequiv -> false
-                                                                            | _ -> -1)
-                                                          | IsValid -> (match solver#get_solve_result with
-                                                                            SolveValid -> true
-                                                                            | SolveUnvalid -> true
-                                                                            | _ -> -1)
-                                                          | Prop(x,ts) -> let ps = List.map (evalTerm eval) ts in
-                                                                          solver#get_variable_bool (x,ps)
-                                                          (* todo antowoten des Sovers anpassen *)
-                                     in let b = beval phi in
+                                        | BOr(phi, psi) ->  begin
+                                                                let e1 = (beval phi) in
+                                                                let e2 = (beval psi) in
+                                                                match (e1, e2) with
+                                                                    | (1, _) -> 1
+                                                                    | (_, 1) -> 1
+                                                                    | (0, 0) -> 0
+                                                                    | (0, -1) -> -1
+                                                                    | (-1, 0) -> -1
+                                                                    | (-1, -1) -> -1
+                                                                    | _ -> -1
+                                                            end
+
+                                        | BNeg(phi) ->  begin
+                                                            match beval phi with
+                                                                | -1 -> -1
+                                                                | 1 -> 0
+                                                                | 0 -> 1
+                                                                | _ -> -1
+                                                        end
+
+                                        | HasModel ->   begin
+                                                            match solver#get_solve_result with
+                                                                | SolveSatisfiable -> 1
+                                                                | SolveUnsatisfiable -> 0
+                                                                | _ -> -1
+                                                        end
+
+                                        | IsSat ->      begin
+                                                            match solver#get_solve_result with
+                                                                | SolveSatisfiable -> 1
+                                                                | SolveUnsatisfiable -> 0
+                                                                | _ -> -1
+                                                        end
+
+                                        | IsEquiv ->    begin
+                                                            match solver#get_solve_result with
+                                                                | SolveSatisfiable -> 1
+                                                                | SolveUnsatisfiable -> 0
+                                                                | _ -> -1
+                                                        end
+
+                                       | IsValid ->     begin
+                                                            match solver#get_solve_result with
+                                                                | SolveSatisfiable -> 1
+                                                                | SolveUnsatisfiable -> 0
+                                                                | _ -> -1
+                                                        end
+
+
+                                       | Prop(x,ts) ->  begin
+                                                            let ps = List.map (evalTerm eval) ts in
+                                                            match solver#get_variable_bool (x,ps) with
+                                                                | true -> 1
+                                                                | false -> 0
+                                                                | _ -> -1
+                                                        end
+
+                                     in
+                                     let b = beval phi
+                                     in
                                      match b with
-                                        true -> run eval solver p1
-                                        | false -> run eval solver p2
-                                        | -1 -> run eval solver p3
-
-
-        *)
+                                        | 1 -> run eval solver p1   (*true*)
+                                        | 0 -> run eval solver p2   (*false*)
+                                        | _ -> run eval solver p3   (*undefined*)
+                                end
 
          | PFor(i,s,n,t,p) -> () (* TODO! implementieren *)

@@ -23,6 +23,7 @@ rule token = parse
  | "SKIP"                                             { TSKIP }
  | "EXIT"                                             { TEXIT}
  | "PRINT"                                            { TPRINT }
+ | "PRINTF"                                           { TPRINTF }
  | "HASMODEL"                                         { THASMODEL}
  | "ISSAT"                                            { TISSAT}
  | "ISVALID"                                          { TISVALID}
