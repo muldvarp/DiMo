@@ -19,7 +19,7 @@
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
-%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TUNDEF
+%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TUNDEF TSTEP
 %token THASMODEL TISSAT TISVALID TISEQUIV
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
@@ -196,13 +196,13 @@ outprog:
     | TSKIP                                                         { PSkip }
     | TEXIT                                                         { PExit }
 	| TPRINT TSTRING                                                { PPrint($2) }
-	| TPRINTF TSTRING TVAR                                         { Printf($2, $3)}
-	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog      { PITEU($2,$4, $6, $8) }
-	| TIF bexpr TTHEN outprog TELSE outprog                     { PITEU($2,$4, $6, PSkip) }
-	| TIF bexpr TTHEN outprog TUNDEF outprog                    { PITEU($2,$4, PSkip, $6) }
-	| TIF bexpr TTHEN outprog                                   { PITEU($2,$4, PSkip, PSkip) }
-        | TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2,$4,BinOp("+",$4,Const(1),(+)),$6,$8) }
-        | TFOR TVAR TEQ term TCOMMA term TTO term TDO outprog TDONE     { PFor($2,$4,$6,$8,$10) }
+	| TPRINTF TSTRING TVAR                                          { Printf($2, $3)}
+	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog          { PITEU($2,$4, $6, $8) }
+	| TIF bexpr TTHEN outprog TELSE outprog                         { PITEU($2,$4, $6, PSkip) }
+	| TIF bexpr TTHEN outprog TUNDEF outprog                        { PITEU($2,$4, PSkip, $6) }
+	| TIF bexpr TTHEN outprog                                       { PITEU($2,$4, PSkip, PSkip) }
+	| TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFOR($2, $4, $6, 1, $8)}
+	| TFOR TVAR TEQ term TTO term TSTEP TEQ term TDO outprog TDONE  { PFOR($2, $4, $6,$9, $11)}
 	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
 ;
 

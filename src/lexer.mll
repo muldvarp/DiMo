@@ -21,9 +21,12 @@ rule token = parse
  | "ELSE"                                             { TELSE }
  | "UNDEF"                                            { TUNDEF}
  | "SKIP"                                             { TSKIP }
- | "EXIT"                                             { TEXIT}
  | "PRINT"                                            { TPRINT }
  | "PRINTF"                                           { TPRINTF }
+ | "FOR"                                              { TFOR }
+ | "STEP"                                             { TSTEP }
+ | "DO"                                               { TDO }
+ | "DONE"                                             { TDONE }
  | "HASMODEL"                                         { THASMODEL}
  | "ISSAT"                                            { TISSAT}
  | "ISVALID"                                          { TISVALID}
