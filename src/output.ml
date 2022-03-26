@@ -57,6 +57,7 @@ type program = PSkip
              | PITEU of bexpr * program * program * program
              | PFor of string * intTerm * intTerm * intTerm * program
              | PComp of program * program
+             | PForEach
 
 (* TODO:
    - FOREACH-Schleife über alle verwendeten Propositionen; dafür: Datentyp um Meta-Variablen für Propositionen erweitern!
@@ -66,13 +67,70 @@ type program = PSkip
  *)
 
                       
-let rec run eval solver =
-  function PSkip -> ()
-         | PExit -> () (*TODO programm ab hier nicht mehr ausführen      exception schmeißen außerhalb abfangen*)
-         | PPrint(s) -> print_string(s)
-         | PPrintf(s, var) -> ()(*TODO ausgeben der aktuellen Variablen werte       *)
-         | PComp(p1,p2) -> run eval solver p1; run eval solver p2
-         | PITEU(phi, p1, p2, p3) -> begin
+let rec run variables eval solver program =
+    let add_to_variables list var value =
+        let check_is_in_variables l varName =
+            let rec aux = function
+                | [] -> false
+                | Counter (h, _):: t -> if h = varName then true else aux t
+            in
+            aux l
+        in
+        if check_is_in_variables list var then failwith "Variable name already exists"
+        else Counter (var, value)::list
+    in
+
+    let remove_from_variables list varName =
+        let rec aux l = function
+            | [] -> failwith "Not in List"
+            | Counter (h, v)::t -> if h = varName then l@t else aux ( Counter (h, v)::l) t
+        in
+        aux [] list
+    in
+
+    let update_variables list varName value = add_to_variables (remove_from_variables list varName) varName value
+    in
+
+    let intTermToInt = function
+                        | Const c -> c
+                        | Counter (_, v) -> v
+                        (*TODO andere Fälle mit einbeziehen*)
+                        | _ -> failwith "Cannot get the value of the intTerm"
+    in
+
+    match program with
+        | PSkip -> ()
+        | PExit -> () (*TODO programm ab hier nicht mehr ausführen      exception schmeißen außerhalb abfangen*)
+        | PPrint(s) -> print_string(s)
+        | PPrintf(str, values) -> begin
+                                    let length = String.length str -1  in
+
+                                    let rec get_value var = function
+                                            | [] -> failwith "Variable not defined"
+                                            | Counter (varName, value)::t ->  begin
+                                                                                if varName = var then value
+                                                                                else get_value var t
+                                                                              end in
+
+                                    let rec aux i values =
+                                            if (i == length) && (List.length values > 0) then failwith "to much values";
+
+                                            if (i <= length) then begin
+                                                if (i < length) && ((String.get str i) = '%') && ((String.get str (i + 1)) = 'i') then
+                                                    match values with
+                                                        | [] -> failwith "to less values"
+                                                        | h::t -> print_int (get_value h variables); aux (i + 1) t;
+                                                else
+                                                    begin
+                                                        if not ((i > 0) && ((String.get str (i - 1)) = '%') && ((String.get str i) = 'i')) then print_char (String.get str i);
+                                                        aux (i + 1) values
+                                                    end
+                                            end
+                                    in
+                                    aux 0 values
+                                  end
+        | PComp(p1,p2) -> run variables eval solver p1; run variables eval solver p2
+        | PITEU(phi, p1, p2, p3) -> begin
                                         let rec beval = function
                                         (* todo antowoten des Solvers anpassen *)
                                         | BAnd(phi, psi) -> begin
@@ -126,8 +184,8 @@ let rec run eval solver =
                                         | IsEquiv ->    begin
                                                             match solver#get_solve_result with
                                                                 | SolveSatisfiable -> 1
-                                                                | SolveUnsatisfiable -> 0
-                                                                | _ -> -1
+                                                                  | SolveUnsatisfiable -> 0
+                                                                                 | _ -> -1
                                                         end
 
                                        | IsValid ->     begin
@@ -150,9 +208,24 @@ let rec run eval solver =
                                      let b = beval phi
                                      in
                                      match b with
-                                        | 1 -> run eval solver p1   (*true*)
-                                        | 0 -> run eval solver p2   (*false*)
-                                        | _ -> run eval solver p3   (*undefined*)
+                                        | 1 -> run variables eval solver p1   (*true*)
+                                        | 0 -> run variables eval solver p2   (*false*)
+                                        | -1 -> run variables eval solver p3   (*undefined*)
                                 end
 
-         | PFor(var, start, stop, step, pr) -> ()
+         | PFor(varName, start, stop, step, pr) ->  begin
+                                                        let startValue = intTermToInt start in
+                                                        let stopValue = intTermToInt stop in
+                                                        let stepValue = intTermToInt step in
+
+                                                        let rec aux variables value =
+                                                            if value <= stopValue then begin
+                                                                let updated_variables = update_variables variables varName value;
+                                                                in
+                                                                aux updated_variables (value + stepValue);
+                                                                run updated_variables eval solver pr;
+                                                            end
+                                                        in
+                                                        aux (add_to_variables variables varName startValue) startValue
+                                                    end
+         | PForEach -> ()

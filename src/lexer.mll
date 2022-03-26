@@ -24,6 +24,7 @@ rule token = parse
  | "PRINT"                                            { TPRINT }
  | "PRINTF"                                           { TPRINTF }
  | "FOR"                                              { TFOR }
+ | "OF"                                               { TOF }
  | "STEP"                                             { TSTEP }
  | "DO"                                               { TDO }
  | "DONE"                                             { TDONE }

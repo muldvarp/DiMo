@@ -9,9 +9,10 @@ module IntSet = Set.Make(struct
 
 type intTerm = Const of int
              | Param of string
-             | BinOp of string * intTerm * intTerm * (int -> int -> int) 
+             | BinOp of string * intTerm * intTerm * (int -> int -> int)
              | UnOp of string * intTerm * (int -> int)
-             | SetOp of string * symbSet * (IntSet.t -> int) 
+             | SetOp of string * symbSet * (IntSet.t -> int)
+             | Counter of string * int
 
 and symbSet = SmallSet of intTerm list
             | Enumeration of intTerm * intTerm * intTerm

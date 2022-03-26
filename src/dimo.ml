@@ -5,7 +5,6 @@ open Engine ;;
 open Arg;;
 open Basics;;
 open Output;;
-(* todo... Wharscheinlich sinvoll Basic zu entfernen  *)
 
 module CommandLine =
 struct
