@@ -196,7 +196,7 @@ outprog:
     | TSKIP                                                         { PSkip }
     | TEXIT                                                         { PExit }
 	| TPRINT TSTRING                                                { PPrint($2) }
-	| TPRINTF TSTRING TVAR                                          { Printf($2, $3)}
+	| TPRINTF TSTRING params                                        { Printf($2, $3)}
 	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog          { PITEU($2,$4, $6, $8) }
 	| TIF bexpr TTHEN outprog TELSE outprog                         { PITEU($2,$4, $6, PSkip) }
 	| TIF bexpr TTHEN outprog TUNDEF outprog                        { PITEU($2,$4, PSkip, $6) }

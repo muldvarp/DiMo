@@ -53,7 +53,7 @@ type bexpr = BNeg of bexpr
 type program = PSkip
              | PExit
              | PPrint of string
-             | PPrintf of string * string
+             | PPrintf of string * (string list)
              | PITEU of bexpr * program * program * program
              | PFor of string * intTerm * intTerm * intTerm * program
              | PComp of program * program
