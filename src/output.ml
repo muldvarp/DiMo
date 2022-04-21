@@ -63,11 +63,12 @@ type program = PSkip
    - FOREACH-Schleife über alle verwendeten Propositionen; dafür: Datentyp um Meta-Variablen für Propositionen erweitern!
    - Datentyp intTerm für Laufvariablen aus Alschemes einbauen
    - Designfrage: wieviel Luxus für formatierte Ausgabe soll es werden?
-   - Frage: soll Ausgabe von Statistik etc. auch extra möglich sein? 
+   - Frage: soll Ausgabe von Statistik etc. auch extra möglich sein?
  *)
 
-                      
+
 let rec run variables eval solver program =
+    (*Todo eval und variables zusammenführen*)
     let add_to_variables list var value =
         let check_is_in_variables l varName =
             let rec aux = function
