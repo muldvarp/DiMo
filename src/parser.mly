@@ -21,7 +21,7 @@
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
 %token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TUNDEF TSTEP TOF
-%token THASMODEL TISSAT TISVALID TISEQUIV
+%token THASMODEL
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
 %token TEOF
@@ -197,15 +197,14 @@ outprog:
     | TSKIP                                                         { PSkip }
     | TEXIT                                                         { PExit }
 	| TPRINT TSTRING                                                { PPrint($2) }
-	| TPRINTF TSTRING params                                        { PPrintf($2, $3)}
+	| TPRINTF TSTRING TSTRING                                       { PPrintf($3, [$2])}
 	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog          { PITEU($2,$4, $6, $8) }
 	| TIF bexpr TTHEN outprog TELSE outprog                         { PITEU($2,$4, $6, PSkip) }
 	| TIF bexpr TTHEN outprog TUNDEF outprog                        { PITEU($2,$4, PSkip, $6) }
 	| TIF bexpr TTHEN outprog                                       { PITEU($2,$4, PSkip, PSkip) }
-	    | TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE             { PFOREACH }
-	    | TFOR TVAR TOF TPARAMETERS TDO outprog TDONE               { PFOREACH }
-	| TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFOR($2, $4, $6, 1, $8)}
-	| TFOR TVAR TEQ term TTO term TSTEP TEQ term TDO outprog TDONE  { PFOR($2, $4, $6,$9, $11)}
+	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                 { PForEach($2, $6) }
+	| TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2, $4, $6, Const(1), $8)}
+	| TFOR TVAR TEQ term TTO term TSTEP TEQ term TDO outprog TDONE  { PFor($2, $4, $6,$9, $11)}
 	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
 ;
 
@@ -214,8 +213,6 @@ bexpr:
     | bexpr TAND bexpr                                              { BAnd($1,$3) }
     | bexpr TOR bexpr                                               { BOr($1,$3) }
     | THASMODEL                                                     { HasModel }
-    | TISSAT                                                        { IsSat }
-    | TISVALID                                                      { IsValid }
-    | TISEQUIV                                                      { IsEquiv }
-    | proposition                                                   { Prop}
+    | proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
+                                                                        | _ -> failwith "Parser failure. Cannot match proposition." }
 ;

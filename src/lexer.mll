@@ -29,9 +29,6 @@ rule token = parse
  | "DO"                                               { TDO }
  | "DONE"                                             { TDONE }
  | "HASMODEL"                                         { THASMODEL}
- | "ISSAT"                                            { TISSAT}
- | "ISVALID"                                          { TISVALID}
- | "ISEQUIV"                                          { TISEQUIV}
  | "FORALL"                                           { TALL }
  | "FORSOME"                                          { TSOME }
  | "MIN"                                              { TMIN }

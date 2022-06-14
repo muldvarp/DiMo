@@ -12,7 +12,6 @@ type intTerm = Const of int
              | BinOp of string * intTerm * intTerm * (int -> int -> int)
              | UnOp of string * intTerm * (int -> int)
              | SetOp of string * symbSet * (IntSet.t -> int)
-             | Counter of string * int
 
 and symbSet = SmallSet of intTerm list
             | Enumeration of intTerm * intTerm * intTerm
@@ -90,7 +89,7 @@ type constraints = (string * (int -> int -> bool) * string) list
                
 type domain = From of int * int
             | FromTo of int * int * int
-	    | FinSet of int list
+	        | FinSet of int list
 
 type parameters = (string * domain) list
 (* type scheme = string * (string list) *)
