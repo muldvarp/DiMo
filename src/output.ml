@@ -50,14 +50,18 @@ type program = PSkip
 
 (* TODO:
    - FOREACH-Schleife über alle verwendeten Propositionen; dafür: Datentyp um Meta-Variablen für Propositionen erweitern!
-   - Datentyp intTerm für Laufvariablen aus Alschemes einbauen
    - Designfrage: wieviel Luxus für formatierte Ausgabe soll es werden?
    - Frage: soll Ausgabe von Statistik etc. auch extra möglich sein?
  *)
 
 
-let rec run params solver program =
-    (*TODO*)
+let rec run_output_language params solver program =
+    (* recursive execution of the output language
+    params: params: (string, domain) list; the parameter values.
+            solver: solver; the solver of the formulas, not of the output.
+            program: program; output language programm.
+    return: None;
+    *)
 
     (*Auxiliary functions*)
     let get_value parameters variable =
@@ -78,6 +82,63 @@ let rec run params solver program =
             |[] -> failwith "Variable not defined"
         in
         aux parameters in
+
+    let intTerm_to_int parameters term =
+        (* Evaluates an intTerm.
+        params: parameters: (string, domain) list; variable: string; startValue: int;
+                term: intTerm; the term that we want to evaluate.
+        return: int; the result of the evaluation.
+        *)
+        let rec aux = function
+            (* Auxiliary functions to recursively evaluate sub terms of the term.
+            params: sub term: intTerm;
+            return: int; the result of the evaluation on this sub term.
+            *)
+            | Const integer                     -> integer
+            | Param variable                    -> get_value parameters variable
+            | BinOp(_, term_1, term_2, func)    -> func (aux term_1) (aux term_2)
+            | UnOp(_, term, func)               -> func (aux term)
+            | SetOp (_, set, func)              -> func (aux_set set)
+
+        and aux_set = function
+            (* Auxiliary function to recursively evaluate of a sub term as a symbSet
+            params: sub term: symbSet;
+            return: IntSet.t -> int; the result of the evaluation on this sub term.
+            *)
+            | SmallSet(termList)                -> IntSet.of_list (List.map (aux) termList)
+            | BinSetOp (_, set1, set2, func)    -> func (aux_set set1) (aux_set set2)
+            | Enumeration(term1, term2, term3)  -> aux_create_enumeration_set term1 term2 term3
+
+        and aux_create_enumeration_set firstTerm secondTerm lastTerm =
+            (* Auxiliary function to crate a IntSet.t of a enumeration.
+            params: firstTerm: intTerm;
+                    secondTerm: intTerm;
+                    lastTerm: intTerm;
+            return: IntSet.t; the crated set.
+            *)
+            let firstValue  = aux firstTerm in
+            let secondValue = aux secondTerm in
+            let lastValue   = aux lastTerm in
+            let stepSize    = secondValue - firstValue in
+
+            let rec makeSet m f =
+                (* Recursively auxiliary function to iterate over all values between the start and the last value
+                 and the value to the result set.*)
+                if f <= lastValue then makeSet (IntSet.add f m) (f+stepSize)
+                else m in
+
+            (*Check if is a correct Enumeration*)
+            if lastValue < firstValue then
+                IntSet.empty
+            else if stepSize <= 0 then
+                failwith ("Illegal definition of enumeration set: {" ^ string_of_int firstValue ^
+                (if stepSize <> 1 then "," ^ string_of_int secondValue else "") ^ ",..," ^string_of_int lastValue ^ "}")
+            else
+            (*crate a enumeration set*)
+            makeSet IntSet.empty firstValue in
+        (*end auxiliary functions for intTerm_to_int*)
+
+        aux term in
 
     let add_new_parameter parameters variable startValue =
         (* Add a new parameter to the parameters list.
@@ -123,10 +184,10 @@ let rec run params solver program =
         return: None;
         *)
 
-        (*TODO get in from intTerm der Eingabevariablen*)
-        let startValue = 1 in
-        let stepSize = 1 in
-        let stopValue = 10 in
+        (* *)
+        let startValue = intTerm_to_int parameters startVal in
+        let stepSize = intTerm_to_int parameters stepSi in
+        let stopValue = intTerm_to_int parameters stopVal in
 
         let rec auxForward parameters currentValue =
             (* Iterate forward and run the given subProg.
@@ -137,7 +198,7 @@ let rec run params solver program =
                 if currentValue <= stopValue then begin
                     let updated_parameters = update_parameters parameters variableName currentValue;
                     in
-                	subProg updated_parameters;
+                	run_output_language updated_parameters solver subProg;
                 	auxForward updated_parameters (currentValue + stepSize);
                 end
         in
@@ -151,7 +212,7 @@ let rec run params solver program =
             if currentValue >= stopValue then begin
             	let updated_parameters = update_parameters parameters variableName currentValue;
             	in
-            	subProg updated_parameters;
+            	run_output_language updated_parameters solver subProg;
             	auxBackward updated_parameters (currentValue + stepSize);
             end
         in
@@ -161,6 +222,10 @@ let rec run params solver program =
         (*Check if it a forward or backward iteration*)
         if stepSize > 0 then auxForward (add_new_parameter parameters variableName startValue) startValue
         else auxBackward (add_new_parameter parameters variableName startValue) startValue in
+
+    let prog_for_each variableName subProg =
+        (*TODO*)
+        () in
 
     let prog_printf_string parameters str variables =
         (* Print a formatted string and use the conventional placeholder %i for a value of a variable.
@@ -196,9 +261,18 @@ let rec run params solver program =
             aux 0 variables in
 
     let prog_if_else_undefined phi prog_if prog_else prog_undefined =
-        (*TODO*)
+        (* A normal if else branching function with a extra undefined case for the case that the expression cannot be evaluated
+        params: phi: bexpr; Expression whose evaluation determines the branch.
+                prog_if: programm; Programm of the if branch.
+                prog_else: programm; Programm of the else branch.
+                prog_undefined: programm; Programm of the undefined branch.
+        return: None;
+        *)
         let rec boolean_evaluation = function
-            (*TODO*)
+            (* Recursively auxiliary function to evaluate the expression.
+            params: bexpr: Expression to evaluate
+            return: boolean: The evaluation of the expression.
+            *)
             | BAnd(phi, psi) ->
                 begin
                     let e1 = (boolean_evaluation phi) in
@@ -240,32 +314,34 @@ let rec run params solver program =
                         | SolveUnsatisfiable -> 0
                         | _ -> -1
                 end
-            | Prop (_, _) -> 0 (*TODO nur platzhalter*)
-            (* TODO
             | Prop(x,ts) ->
+                (*TODO bin mir nicht ganz sicher ob, wenn auf außerhalb des Definition bereichs zugegriffen wird ob
+                sich ausdruck zu -1 auswertet oder ob Programm dann mit Fehler beendet wird*)
                 begin
-                    let ps = List.map (evalTerm params) ts in
+                    let ps = List.map (intTerm_to_int params) ts in
                     match solver#get_variable_bool (x,ps) with
                         | true -> 1
                         | false -> 0
                         | _ -> -1
                 end
-            *)
+
             in
         let evaluation = boolean_evaluation phi in
         match evaluation with
-            | 1  -> run params solver prog_if
-            | 0  -> run params solver prog_else
-            | -1 -> run params solver prog_undefined in
+            | 1  -> run_output_language params solver prog_if
+            | 0  -> run_output_language params solver prog_else
+            | -1 -> run_output_language params solver prog_undefined
+            | _  -> failwith "Error by the evaluation of the boolean expression" in
 
-    (*begin main code of the function*)
+    (*begin main code of the run_output_language function*)
     match program with
         | PSkip                                                 -> ()
-        | PExit                                                 -> failwith ""
+        | PExit                                                 -> failwith "Exit of the output programm."
         | PPrint(str)                                           -> print_string(str)
-        | PComp(prog_1, prog_2)                                 -> run params solver prog_1; run params solver prog_2
+        | PComp(prog_1, prog_2)                                 -> run_output_language params solver prog_1;
+                                                                   run_output_language params solver prog_2
         | PITEU(phi, prog_if, prog_else, prog_undefined)        -> prog_if_else_undefined phi prog_if prog_else prog_undefined
         | PPrintf(str, values)                                  -> prog_printf_string params str values
         | PFor(varName, startVal, stopVal, stepSize, subProg)   -> prog_for params varName startVal stepSize stopVal subProg
-        | PForEach(_, _)                                        -> () (*TODO*)
+        | PForEach(varName, subProg)                            -> prog_for_each varName subProg
 ;;
