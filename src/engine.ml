@@ -3,6 +3,7 @@ open Alschemes;;
 open PropFormula;;
 open Basics;;
 open Satwrapper;;
+open Output;;
 
 
 let timeout = ref 15.0
@@ -21,7 +22,7 @@ class virtual checkEngine =
   end
 
         
-class simpleSatEngine props params constrs sphi defs report = 
+class simpleSatEngine props params constrs sphi defs report outProg =
   object (self)
     inherit checkEngine
 
@@ -108,6 +109,9 @@ class simpleSatEngine props params constrs sphi defs report =
                                                    output 0 0 (report eval false [] ^ "\n")
                                                  end);
 
+                           (*TODO nicht sicher ob es sinnvoll ist hier die Ausgabe aufzurufen*)
+                           run_output_language params solver outProg;
+
                            solver#dispose
 	                 end
                        else
@@ -122,7 +126,7 @@ class simpleSatEngine props params constrs sphi defs report =
                     end
   end                                            
 
-class modelsEngine props params constrs sphi defs initreport eachreport = 
+class modelsEngine props params constrs sphi defs initreport eachreport outProg =
   object (self)
     inherit checkEngine
 
@@ -216,6 +220,10 @@ class modelsEngine props params constrs sphi defs initreport eachreport =
                                   output 0 0 (eachreport false [] models ^ "\n")
                                 end)
                            done;
+
+                           (*TODO nicht sicher ob es sinnvoll ist hier die Ausgabe aufzurufen*)
+                           run_output_language params solver outProg;
+
                            solver#dispose
 	                 end
                        else

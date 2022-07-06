@@ -39,27 +39,20 @@ type bexpr = HasModel
            | BOr of bexpr * bexpr
            | Prop of string * (intTerm list)
 
-type program = PSkip
+type outprog = PSkip
              | PExit
              | PPrint of string
              | PPrintf of string * string list
-             | PITEU of bexpr * program * program * program
-             | PFor of string * intTerm * intTerm * intTerm * program
-             | PComp of program * program
-             | PForEach of string * program
-
-(* TODO:
-   - FOREACH-Schleife über alle verwendeten Propositionen; dafür: Datentyp um Meta-Variablen für Propositionen erweitern!
-   - Designfrage: wieviel Luxus für formatierte Ausgabe soll es werden?
-   - Frage: soll Ausgabe von Statistik etc. auch extra möglich sein?
- *)
-
+             | PITEU of bexpr * outprog * outprog * outprog
+             | PFor of string * intTerm * intTerm * intTerm * outprog
+             | PComp of outprog * outprog
+             | PForEach of string * outprog
 
 let rec run_output_language params solver program =
     (* recursive execution of the output language
     params: params: (string, domain) list; the parameter values.
             solver: solver; the solver of the formulas, not of the output.
-            program: program; output language programm.
+            program: outprog; output language programm.
     return: None;
     *)
 
@@ -180,7 +173,7 @@ let rec run_output_language params solver program =
                 startValue: int;
                 stepSize: int;
                 stopValue: int;
-                subProg: programm; a program which is executed in the loop body.
+                subProg: outprog; a program which is executed in the loop body.
         return: None;
         *)
 
@@ -263,9 +256,9 @@ let rec run_output_language params solver program =
     let prog_if_else_undefined phi prog_if prog_else prog_undefined =
         (* A normal if else branching function with a extra undefined case for the case that the expression cannot be evaluated
         params: phi: bexpr; Expression whose evaluation determines the branch.
-                prog_if: programm; Programm of the if branch.
-                prog_else: programm; Programm of the else branch.
-                prog_undefined: programm; Programm of the undefined branch.
+                prog_if: outprog; Programm of the if branch.
+                prog_else: outprog; Programm of the else branch.
+                prog_undefined: outprog; Programm of the undefined branch.
         return: None;
         *)
         let rec boolean_evaluation = function

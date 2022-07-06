@@ -56,10 +56,15 @@
 %%
 start:	  main TEOF                                                     { $1 }
 ;
-main:	  TSATISFIABLE scheme propositions parameters definitions output           { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5) }
-	| TVALID scheme propositions parameters definitions output                 { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5) }
-	| TEQUIVALENT scheme TTO scheme propositions parameters definitions output { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
-	| TMODELS scheme propositions parameters definitions output                { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5) }
+main:
+    | TSATISFIABLE scheme propositions parameters definitions TOUTPUT outprog
+        { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5, $7) }
+	| TVALID scheme propositions parameters definitions TOUTPUT outprog
+	    { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5, $7) }
+	| TEQUIVALENT scheme TTO scheme propositions parameters definitions
+	    { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
+	| TMODELS scheme propositions parameters definitions TOUTPUT outprog
+	    { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5, $7) }
 
 ;
 propositions:                                                           { StringSet.empty }
@@ -184,13 +189,6 @@ term:
 terms:
 	  term                                                          { [ $1 ] }
 	| term TCOMMA terms                                             { $1 :: $3 }
-;
-
-
-
-
-output:
-          TOUTPUT outprog                                               { $2 }
 ;
 
 outprog:

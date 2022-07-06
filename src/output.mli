@@ -6,14 +6,14 @@ type bexpr = HasModel
            | BOr of bexpr * bexpr
            | Prop of string * (intTerm list)
 
-type program = PSkip
+type outprog = PSkip
              | PExit
              | PPrint of string
              | PPrintf of string * string list
-             | PITEU of bexpr * program * program * program
-             | PFor of string * intTerm * intTerm * intTerm * program
-             | PComp of program * program
-             | PForEach of string * program
+             | PITEU of bexpr * outprog * outprog * outprog
+             | PFor of string * intTerm * intTerm * intTerm * outprog
+             | PComp of outprog * outprog
+             | PForEach of string * outprog
 
 val debug_level : int ref
                 
