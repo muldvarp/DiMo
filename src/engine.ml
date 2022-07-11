@@ -100,16 +100,15 @@ class simpleSatEngine props params constrs sphi defs report outProg =
                                                                    (List.filter (fun (x,_) -> StringSet.mem x props) props')
                                                       in
                                                       output 1 0 "done.\n";
-                                                      output 0 0 (report eval true lits ^ "\n")
+                                                      output 1 0 (report eval true lits ^ "\n")
                               | SolveUnsatisfiable -> output 1 0 "unsatisfiable!\n";
-                                                      output 0 0 (report eval false [] ^ "\n")
+                                                      output 1 0 (report eval false [] ^ "\n")
                               | SolveFailure s     -> failwith s);
                            with Minisat.Unsat -> begin
                                                    output 1 0 "unsatisfiable!\n";
-                                                   output 0 0 (report eval false [] ^ "\n")
+                                                   output 1 0 (report eval false [] ^ "\n")
                                                  end);
 
-                           (*TODO nicht sicher ob es sinnvoll ist hier die Ausgabe aufzurufen*)
                            run_output_language params solver outProg;
 
                            solver#dispose
@@ -185,7 +184,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                              phi'';
                            output 1 0 "done.\n";
                            
-                           output 0 0 (initreport eval ^ "\n");
+                           output 1 0 (initreport eval ^ "\n");
                            
                            while satisfiable do
                              output 1 1 "Solving ...................................... ";
@@ -207,7 +206,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                                   in
                                   let dual_clause = List.map (function Lit(b,x,ps) -> if b then Ne(x,ps) else Po(x,ps) | _ -> failwith "checkEngine.run: detected non-literal") solution
                                   in
-                                  output 0 0 (eachreport true solution models ^ "\n");
+                                  output 1 0 (eachreport true solution models ^ "\n");
                                   models <- models + 1;
                                   output 1 1 "Adding new clause ............................ ";
 				  solver#incremental_reset;
@@ -217,11 +216,10 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                               else
                                 begin
                                   output 1 0 "unsatisfiable!\n";
-                                  output 0 0 (eachreport false [] models ^ "\n")
+                                  output 1 0 (eachreport false [] models ^ "\n")
                                 end)
                            done;
 
-                           (*TODO nicht sicher ob es sinnvoll ist hier die Ausgabe aufzurufen*)
                            run_output_language params solver outProg;
 
                            solver#dispose
