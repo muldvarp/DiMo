@@ -9,7 +9,7 @@ type bexpr = HasModel
 type outprog = PSkip
              | PExit
              | PPrint of string
-             | PPrintf of string * string list
+             | PPrintf of string * intTerm list
              | PITEU of bexpr * outprog * outprog * outprog
              | PFor of string * intTerm * intTerm * intTerm * outprog
              | PComp of outprog * outprog

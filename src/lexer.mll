@@ -62,21 +62,23 @@ rule token = parse
                                                                                | n -> let b = pow a (n / 2) in
                                                                                       b * b * (if n mod 2 = 0 then 1 else a)
                                                         in TBINOP("^",pow) }
- | "<="                                               { TCOMP((<=)) }
- | ">="                                               { TCOMP((>=)) }
- | "<>"                                               { TCOMP((<>)) }
- | '<'                                                { TCOMP((<)) }
- | '>'                                                { TCOMP((>)) }
- | '='                                                { TEQ }
- | '('                                                { TLPAREN }
- | ')'                                                { TRPAREN }
- | '{'                                                { TLBRACE }
- | '}'                                                { TRBRACE }
- | ".."                                               { TDOTS }
- | '.'                                                { TDOT }
- | ':'                                                { TCOLON }
- | ';'                                                { TSEMICOLON }
- | ','                                                { TCOMMA }
- | eof                                                { TEOF }
+ | "<="                                                 { TCOMP((<=)) }
+ | ">="                                                 { TCOMP((>=)) }
+ | "<>"                                                 { TCOMP((<>)) }
+ | '<'                                                  { TCOMP((<)) }
+ | '>'                                                  { TCOMP((>)) }
+ | '='                                                  { TEQ }
+ | '('                                                  { TLPAREN }
+ | ')'                                                  { TRPAREN }
+ | '{'                                                  { TLBRACE }
+ | '}'                                                  { TRBRACE }
+ | '['                                                  { TLBRACKET }
+ | ']'                                                  { TRBRACKET }
+ | ".."                                                 { TDOTS }
+ | '.'                                                  { TDOT }
+ | ':'                                                  { TCOLON }
+ | ';'                                                  { TSEMICOLON }
+ | ','                                                  { TCOMMA }
+ | eof                                                  { TEOF }
 
 

@@ -16,7 +16,7 @@
 %token TAND TOR TNEG TIMP TBIIMP TTRUE TFALSE
 %token TALL TSOME TFOR TDO TDONE
 %token TCOLON TDOT TSEMICOLON
-%token TLPAREN TRPAREN TLBRACE TRBRACE
+%token TLPAREN TRPAREN TLBRACE TRBRACE TLBRACKET TRBRACKET
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
@@ -192,18 +192,18 @@ terms:
 ;
 
 outprog:
-    | TSKIP                                                         { PSkip }
-    | TEXIT                                                         { PExit }
-	| TPRINT TSTRING                                                { PPrint($2) }
-	| TPRINTF TSTRING TSTRING                                       { PPrintf($3, [$2])}
-	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog          { PITEU($2,$4, $6, $8) }
-	| TIF bexpr TTHEN outprog TELSE outprog                         { PITEU($2,$4, $6, PSkip) }
-	| TIF bexpr TTHEN outprog TUNDEF outprog                        { PITEU($2,$4, PSkip, $6) }
-	| TIF bexpr TTHEN outprog                                       { PITEU($2,$4, PSkip, PSkip) }
-	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                 { PForEach($2, $6) }
-	| TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2, $4, $6, Const(1), $8)}
-	| TFOR TVAR TEQ term TTO term TSTEP TEQ term TDO outprog TDONE  { PFor($2, $4, $6,$9, $11)}
-	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
+    | TSKIP                                                             { PSkip }
+    | TEXIT                                                             { PExit }
+	| TPRINT TSTRING                                                    { PPrint($2) }
+	| TPRINTF TSTRING TLBRACKET paramorconsts TRBRACKET                 { PPrintf($2, $4)}
+	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog              { PITEU($2,$4, $6, $8) }
+	| TIF bexpr TTHEN outprog TELSE outprog                             { PITEU($2,$4, $6, PSkip) }
+	| TIF bexpr TTHEN outprog TUNDEF outprog                            { PITEU($2,$4, PSkip, $6) }
+	| TIF bexpr TTHEN outprog                                           { PITEU($2,$4, PSkip, PSkip) }
+	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                     { PForEach($2, $6) }
+	| TFOR TPARAM TEQ term TTO term TDO outprog TDONE                   { PFor($2, $4, $6, Const(1), $8)}
+	| TFOR TPARAM TEQ term TTO term TSTEP TEQ term TDO outprog TDONE    { PFor($2, $4, $6,$9, $11)}
+	| outprog TSEMICOLON outprog                                        { PComp($1,$3) }
 ;
 
 bexpr:

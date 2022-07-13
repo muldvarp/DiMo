@@ -31,7 +31,7 @@ type bexpr = HasModel
 type outprog = PSkip
              | PExit
              | PPrint of string
-             | PPrintf of string * string list
+             | PPrintf of string * intTerm list
              | PITEU of bexpr * outprog * outprog * outprog
              | PFor of string * intTerm * intTerm * intTerm * outprog
              | PComp of outprog * outprog
@@ -314,7 +314,7 @@ let instantiate sphi defs eval =
 
 
 
-(*TODO hier weg... *)
+(*TODO ab hier weg... *)
 
 
 open Satwrapper;;
@@ -548,7 +548,7 @@ let rec run_output_language params solver program =
                     if (currentPos < length) && ((String.get str currentPos) = '%') && ((String.get str (currentPos + 1)) = 'i') then
                         match variables with
                             | [] -> failwith "to less values"
-                            | head::tail -> print_int (get_value parameters head); aux (currentPos + 1) tail;
+                            | head::tail -> print_int (intTerm_to_int parameters head); aux (currentPos + 1) tail;
                     else
                         begin
                             if not ((currentPos > 0) && ((String.get str (currentPos - 1)) = '%') && ((String.get str currentPos) = 'i')) then print_char (String.get str currentPos);
@@ -591,8 +591,8 @@ let rec run_output_language params solver program =
                     match (e1, e2) with
                         | (_, -1)   -> -1
                         | (-1, _)   -> -1
-                        | (0, 1)    -> 0
-                        | (1, 0)    -> 0
+                        | (0, 1)    -> 1
+                        | (1, 0)    -> 1
                         | (0, 0)    -> 0
                         | (1, 1)    -> 1
                         | _         -> -1
@@ -613,8 +613,7 @@ let rec run_output_language params solver program =
                         | _ -> -1
                 end
             | Prop(x,ts) ->
-                (*TODO bin mir nicht ganz sicher ob, wenn auf außerhalb des Definition bereichs zugegriffen wird ob
-                sich ausdruck zu -1 auswertet oder ob Programm dann mit Fehler beendet wird*)
+                (*TODO bei zugriff außerhalb des Bereichs wertet sich ausdruck nicht zu -1 aus*)
                 begin
                     let ps = List.map (intTerm_to_int params) ts in
                     match solver#get_variable_bool (x,ps) with
@@ -635,7 +634,7 @@ let rec run_output_language params solver program =
     match program with
         | PSkip                                                 -> ()
         | PExit                                                 -> failwith "Exit of the output programm."
-        | PPrint(str)                                           -> print_string(str)
+        | PPrint(str)                                           -> output 0 0 (String.sub str 1 ((String.length str) - 2))
         | PComp(prog_1, prog_2)                                 -> run_output_language params solver prog_1;
                                                                    run_output_language params solver prog_2
         | PITEU(phi, prog_if, prog_else, prog_undefined)        -> prog_if_else_undefined phi prog_if prog_else prog_undefined
