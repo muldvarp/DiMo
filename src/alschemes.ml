@@ -638,7 +638,7 @@ let rec run_output_language params solver program =
         | PComp(prog_1, prog_2)                                 -> run_output_language params solver prog_1;
                                                                    run_output_language params solver prog_2
         | PITEU(phi, prog_if, prog_else, prog_undefined)        -> prog_if_else_undefined phi prog_if prog_else prog_undefined
-        | PPrintf(str, values)                                  -> prog_printf_string params str values
+        | PPrintf(str, values)                                  -> prog_printf_string params (String.sub str 1 ((String.length str) - 2)) values
         | PFor(varName, startVal, stopVal, stepSize, subProg)   -> prog_for params varName startVal stepSize stopVal subProg
         | PForEach(varName, subProg)                            -> prog_for_each varName subProg
 ;;

@@ -20,6 +20,7 @@ rule token = parse
  | "THEN"                                             { TTHEN }
  | "ELSE"                                             { TELSE }
  | "UNDEF"                                            { TUNDEF}
+ | "ENDIF"                                            { TENDIF }
  | "SKIP"                                             { TSKIP }
  | "PRINT"                                            { TPRINT }
  | "PRINTF"                                           { TPRINTF }
@@ -33,6 +34,7 @@ rule token = parse
  | "FORSOME"                                          { TSOME }
  | "MIN"                                              { TMIN }
  | "MAX"                                              { TMAX }
+ | "EXIT"                                             { TEXIT }
  | "LOG"                                              { let rec log = function 0 -> failwith "LOG(0) undefined!"
                                                                              | 1 -> 0 
                                                                              | n -> 1 + log (n/2 + (n mod 2))

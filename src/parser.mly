@@ -20,7 +20,7 @@
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
-%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TUNDEF TSTEP TOF
+%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TENDIF TUNDEF TSTEP TOF
 %token THASMODEL
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
@@ -196,10 +196,10 @@ outprog:
     | TEXIT                                                             { PExit }
 	| TPRINT TSTRING                                                    { PPrint($2) }
 	| TPRINTF TSTRING TLBRACKET paramorconsts TRBRACKET                 { PPrintf($2, $4)}
-	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog              { PITEU($2,$4, $6, $8) }
-	| TIF bexpr TTHEN outprog TELSE outprog                             { PITEU($2,$4, $6, PSkip) }
-	| TIF bexpr TTHEN outprog TUNDEF outprog                            { PITEU($2,$4, PSkip, $6) }
-	| TIF bexpr TTHEN outprog                                           { PITEU($2,$4, PSkip, PSkip) }
+	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog TENDIF       { PITEU($2,$4, $6, $8) }
+	| TIF bexpr TTHEN outprog TELSE outprog TENDIF                      { PITEU($2,$4, $6, PSkip) }
+	| TIF bexpr TTHEN outprog TUNDEF outprog TENDIF                     { PITEU($2,$4, PSkip, $6) }
+	| TIF bexpr TTHEN outprog TENDIF                                    { PITEU($2,$4, PSkip, PSkip) }
 	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                     { PForEach($2, $6) }
 	| TFOR TPARAM TEQ term TTO term TDO outprog TDONE                   { PFor($2, $4, $6, Const(1), $8)}
 	| TFOR TPARAM TEQ term TTO term TSTEP TEQ term TDO outprog TDONE    { PFor($2, $4, $6,$9, $11)}
