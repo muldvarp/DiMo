@@ -203,7 +203,7 @@ outprog:
 	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                     { PForEach($2, $6) }
 	| TFOR TPARAM TEQ term TTO term TDO outprog TDONE                   { PFor($2, $4, $6, Const(1), $8)}
 	| TFOR TPARAM TEQ term TTO term TSTEP TEQ term TDO outprog TDONE    { PFor($2, $4, $6,$9, $11)}
-	| outprog TSEMICOLON outprog                                        { PComp($1,$3) }
+	| outprog outprog                                                   { PComp($1,$2) }
 ;
 
 bexpr:

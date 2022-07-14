@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="df08f791-ff6a-4f0f-a9cd-8059e8f0ba8c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/alschemes.ml" beforeDir="false" afterPath="$PROJECT_DIR$/src/alschemes.ml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lexer.mll" beforeDir="false" afterPath="$PROJECT_DIR$/src/lexer.mll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/parser.mly" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser.mly" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +45,7 @@
       <option name="presentableId" value="Default" />
       <updated>1657106836618</updated>
       <workItem from="1657106841926" duration="4541000" />
-      <workItem from="1657795995761" duration="1491000" />
+      <workItem from="1657795995761" duration="2498000" />
     </task>
     <servers />
   </component>
