@@ -15,6 +15,7 @@ rule token = parse
  | "VALID"                                            { TVALID }
  | "EQUIVALENT"                                       { TEQUIVALENT }
  | "MODELS"                                           { TMODELS }
+ | "FROM"                                             { TFROM }
  | "TO"                                               { TTO }
  | "IF"                                               { TIF }
  | "THEN"                                             { TTHEN }
@@ -29,7 +30,7 @@ rule token = parse
  | "STEP"                                             { TSTEP }
  | "DO"                                               { TDO }
  | "DONE"                                             { TDONE }
- | "HASMODEL"                                         { THASMODEL}
+ | "HASMODEL"                                         { THASMODEL }
  | "FORALL"                                           { TALL }
  | "FORSOME"                                          { TSOME }
  | "MIN"                                              { TMIN }

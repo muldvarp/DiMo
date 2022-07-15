@@ -27,6 +27,7 @@ type bexpr = HasModel
            | BAnd of bexpr * bexpr
            | BOr of bexpr * bexpr
            | Prop of string * (intTerm list)
+           | BComp of intTerm * (int -> int -> bool) * intTerm
 
 type outprog = PSkip
              | PExit
@@ -621,7 +622,11 @@ let rec run_output_language params solver program =
                         | false -> 0
                         | _ -> -1
                 end
-
+            | BComp(term1, compOper, term2) ->
+                begin
+                    let cmpRes = compOper (intTerm_to_int params term1) (intTerm_to_int params term2) in
+                    if cmpRes then 1 else 0
+                end
             in
         let evaluation = boolean_evaluation phi in
         match evaluation with

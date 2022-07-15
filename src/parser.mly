@@ -20,7 +20,7 @@
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
-%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TENDIF TUNDEF TSTEP TOF
+%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TENDIF TUNDEF TSTEP TOF TFROM
 %token THASMODEL
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
@@ -201,8 +201,8 @@ outprog:
 	| TIF bexpr TTHEN outprog TUNDEF outprog TENDIF                     { PITEU($2,$4, PSkip, $6) }
 	| TIF bexpr TTHEN outprog TENDIF                                    { PITEU($2,$4, PSkip, PSkip) }
 	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                     { PForEach($2, $6) }
-	| TFOR TPARAM TEQ term TTO term TDO outprog TDONE                   { PFor($2, $4, $6, Const(1), $8)}
-	| TFOR TPARAM TEQ term TTO term TSTEP TEQ term TDO outprog TDONE    { PFor($2, $4, $6,$9, $11)}
+	| TFOR TPARAM TFROM term TTO term TDO outprog TDONE                 { PFor($2, $4, $6, Const(1), $8)}
+	| TFOR TPARAM TFROM term TTO term TSTEP term TDO outprog TDONE      { PFor($2, $4, $6,$8, $10)}
 	| outprog outprog                                                   { PComp($1,$2) }
 ;
 
@@ -213,4 +213,6 @@ bexpr:
     | THASMODEL                                                     { HasModel }
     | proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
                                                                         | _ -> failwith "Parser failure. Cannot match proposition." }
+    | term TEQ term                                                 { BComp($1, (=), $3) }
+    | term TCOMP term                                               { BComp($1, $2, $3)}
 ;
