@@ -5,6 +5,7 @@ type bexpr = HasModel
            | BAnd of bexpr * bexpr
            | BOr of bexpr * bexpr
            | Prop of string * (intTerm list)
+           | BComp of intTerm * (int -> int -> bool) * intTerm
 
 type outprog = PSkip
              | PExit
@@ -15,8 +16,11 @@ type outprog = PSkip
              | PComp of outprog * outprog
              | PForEach of string * outprog
 
+
 val debug_level : int ref
                 
 val output : int -> int -> string -> unit
   
 val announce_and_do : int -> int -> string -> 'a -> 'a
+
+

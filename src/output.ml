@@ -17,27 +17,12 @@ let announce_and_do l i s f = if l <= !debug_level then
                               else
                                 f
 
-(*
-type field = RawFormula
-           | TidiedFormula
-           | CNFFormula
-           | ParameterEvaluation
-           | PropositionalModel
-           | Result
-           
-type output = Text of string
-            | WaitFor of field
-            | FillWothDots
-            | LineBreak
-
-let normaloutput = [ Text("Instance "); WaitFor ParameterEvaluation; FillWithDots; WaitFor Result; LineBreak ]
- *)
-
 type bexpr = HasModel
            | BNeg of bexpr
            | BAnd of bexpr * bexpr
            | BOr of bexpr * bexpr
            | Prop of string * (intTerm list)
+           | BComp of intTerm * (int -> int -> bool) * intTerm
 
 type outprog = PSkip
              | PExit
@@ -316,7 +301,11 @@ let rec run_output_language params solver program =
                         | false -> 0
                         | _ -> -1
                 end
-
+            | BComp(term1, compOper, term2) ->
+                begin
+                    let cmpRes = compOper (intTerm_to_int params term1) (intTerm_to_int params term2) in
+                    if cmpRes then 1 else 0
+                end
             in
         let evaluation = boolean_evaluation phi in
         match evaluation with
@@ -333,7 +322,7 @@ let rec run_output_language params solver program =
         | PComp(prog_1, prog_2)                                 -> run_output_language params solver prog_1;
                                                                    run_output_language params solver prog_2
         | PITEU(phi, prog_if, prog_else, prog_undefined)        -> prog_if_else_undefined phi prog_if prog_else prog_undefined
-        | PPrintf(str, values)                                  -> prog_printf_string params str values
+        | PPrintf(str, values)                                  -> prog_printf_string params (String.sub str 1 ((String.length str) - 2)) values
         | PFor(varName, startVal, stopVal, stepSize, subProg)   -> prog_for params varName startVal stepSize stopVal subProg
         | PForEach(varName, subProg)                            -> prog_for_each varName subProg
 ;;
