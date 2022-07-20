@@ -354,15 +354,43 @@ let normaloutput = [ Text("Instance "); WaitFor ParameterEvaluation; FillWithDot
 
 
 
-let rec run_output_language params solver program =
+let rec run_output_language props currentProps params solver program =
     (* recursive execution of the output language
-    params: params: (string, domain) list; the parameter values.
+    params: props: Set of the used props in the problem definition.
+            currentPops: TODO
+            params: (string, domain) list; the parameter values.
             solver: solver; the solver of the formulas, not of the output.
             program: outprog; output language programm.
     return: None;
     *)
 
     (*Auxiliary functions*)
+     let get_StringSet_for_var variable currentProps =
+        (*TODO*)
+        let rec aux = function
+            | (v, set)::tail -> if v = variable then set else aux tail
+            | [] -> failwith "For this variable exists no Set."
+        in
+        aux currentProps
+    in
+
+    let get_current_prop_of_var variable currentProps =
+        (*TODO*)
+        let stringSetOfProp =  (get_StringSet_for_var variable currentProps) in
+        if StringSet.is_empty stringSetOfProp then failwith "The StringSet of the current propositions is empty.";
+        StringSet.choose  stringSetOfProp
+    in
+
+    let if_prop_in_currentProps variabelName currentProps =
+        (*TODO*)
+        let rec aux = function
+            | [] -> false
+            | (v, _)::tail ->   if v = variabelName then true
+                                else aux tail
+        in
+        aux currentProps
+    in
+
     let get_value parameters variable =
         (* Returns the value of a parameter in the parameters list.
         param:      parameters: (string, domain) list; variable: string;
@@ -483,7 +511,6 @@ let rec run_output_language params solver program =
         return: None;
         *)
 
-        (* *)
         let startValue = intTerm_to_int parameters startVal in
         let stepSize = intTerm_to_int parameters stepSi in
         let stopValue = intTerm_to_int parameters stopVal in
@@ -497,7 +524,7 @@ let rec run_output_language params solver program =
                 if currentValue <= stopValue then begin
                     let updated_parameters = update_parameters parameters variableName currentValue;
                     in
-                	run_output_language updated_parameters solver subProg;
+                	run_output_language props currentProps updated_parameters solver subProg;
                 	auxForward updated_parameters (currentValue + stepSize);
                 end
         in
@@ -511,7 +538,7 @@ let rec run_output_language params solver program =
             if currentValue >= stopValue then begin
             	let updated_parameters = update_parameters parameters variableName currentValue;
             	in
-            	run_output_language updated_parameters solver subProg;
+            	run_output_language props currentProps updated_parameters solver subProg;
             	auxBackward updated_parameters (currentValue + stepSize);
             end
         in
@@ -524,7 +551,46 @@ let rec run_output_language params solver program =
 
     let prog_for_each variableName subProg =
         (*TODO*)
-        () in
+
+        let if_prop_name_used newName currentProps props =
+            (*TODO*)
+            if (StringSet.mem newName props) then true
+            else (if_prop_in_currentProps newName currentProps)
+        in
+
+        let updateProp variable currentProps =
+            (*TODO*)
+            let rec aux updated = function
+                (*TODO*)
+                | [] -> updated
+                | (v, set)::tail -> if v = variable
+                                    then begin
+                                        let newSet = StringSet.remove (StringSet.choose set) set in
+                                    	if StringSet.is_empty newSet then
+                                    	    aux updated tail
+                                        else
+                                            aux ((v, newSet)::updated) tail
+                                    end
+                                  else aux ((v, set)::updated) tail
+            in
+            aux []  currentProps
+        in
+
+        let check_if_prop_is_not_empty variable currentProps =
+            (*TODO*)
+            let stringSet = get_StringSet_for_var variable currentProps in
+            StringSet.is_empty stringSet
+        in
+
+        let rec prop_iteration variable currentProps =
+            run_output_language props currentProps params solver subProg;
+            let updatedProps = updateProp variable currentProps in
+            if (if_prop_in_currentProps variable updatedProps) then prop_iteration variable updatedProps
+        in
+
+        if (if_prop_name_used variableName currentProps props) then failwith "The propostions name is already used."
+        else prop_iteration variableName ((variableName, props)::currentProps)
+    in
 
     let prog_printf_string parameters str variables =
         (* Print a formatted string and use the conventional placeholder %i for a value of a variable.
@@ -614,10 +680,19 @@ let rec run_output_language params solver program =
                         | _ -> -1
                 end
             | Prop(x,ts) ->
-                (*TODO bei zugriff außerhalb des Bereichs wertet sich ausdruck nicht zu -1 aus*)
                 begin
+                    let getProp x =
+                        (*TODO*)
+                        if (if_prop_in_currentProps x currentProps) then (get_current_prop_of_var x currentProps)
+                        else x
+                    in
                     let ps = List.map (intTerm_to_int params) ts in
-                    match solver#get_variable_bool (x,ps) with
+                    let prop = getProp x in
+
+                    if not (StringSet.mem prop props) then failwith "Proposition is not defined.";
+
+                    (*TODO bei zugriff außerhalb des Bereichs wertet sich ausdruck nicht zu -1 aus*)
+                    match solver#get_variable_bool (prop,ps) with
                         | true -> 1
                         | false -> 0
                         | _ -> -1
@@ -630,9 +705,9 @@ let rec run_output_language params solver program =
             in
         let evaluation = boolean_evaluation phi in
         match evaluation with
-            | 1  -> run_output_language params solver prog_if
-            | 0  -> run_output_language params solver prog_else
-            | -1 -> run_output_language params solver prog_undefined
+            | 1  -> run_output_language props currentProps params solver prog_if
+            | 0  -> run_output_language props currentProps params solver prog_else
+            | -1 -> run_output_language props currentProps params solver prog_undefined
             | _  -> failwith "Error by the evaluation of the boolean expression" in
 
     (*begin main code of the run_output_language function*)
@@ -640,8 +715,8 @@ let rec run_output_language params solver program =
         | PSkip                                                 -> ()
         | PExit                                                 -> failwith "Exit of the output programm."
         | PPrint(str)                                           -> output 0 0 (String.sub str 1 ((String.length str) - 2))
-        | PComp(prog_1, prog_2)                                 -> run_output_language params solver prog_1;
-                                                                   run_output_language params solver prog_2
+        | PComp(prog_1, prog_2)                                 -> run_output_language props currentProps params solver prog_1;
+                                                                   run_output_language props currentProps params solver prog_2
         | PITEU(phi, prog_if, prog_else, prog_undefined)        -> prog_if_else_undefined phi prog_if prog_else prog_undefined
         | PPrintf(str, values)                                  -> prog_printf_string params (String.sub str 1 ((String.length str) - 2)) values
         | PFor(varName, startVal, stopVal, stepSize, subProg)   -> prog_for params varName startVal stepSize stopVal subProg

@@ -109,7 +109,7 @@ class simpleSatEngine props params constrs sphi defs report outProg =
                                                    output 1 0 (report eval false [] ^ "\n")
                                                  end);
 
-                           run_output_language params solver outProg;
+                           run_output_language props [] params solver outProg;
 
                            solver#dispose
 	                 end
@@ -220,7 +220,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                                 end)
                            done;
 
-                           run_output_language params solver outProg;
+                           run_output_language props [] params solver outProg;
 
                            solver#dispose
 	                 end
