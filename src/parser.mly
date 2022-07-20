@@ -167,12 +167,13 @@ symbset:
 
 term:
 	  TINT                                                          { Const($1) }
+	| TNEG term                                                     { BinOp("-",Const(0), $2,(fun x -> fun y -> x-y)) }
 	| TPARAM                                                        { Param($1) }
 	| term TBINOP term                                              { let (s,f) = $2 in BinOp(s,$1,$3,f) }
-	| term TPLUS term						{ BinOp("+",$1,$3,(+)) }
-	| term TMULT term						{ BinOp("*",$1,$3,(fun x -> fun y -> x*y)) }
+	| term TPLUS term						                        { BinOp("+",$1,$3,(+)) }
+	| term TMULT term						                        { BinOp("*",$1,$3,(fun x -> fun y -> x*y)) }
 	| term TNEG term                                                { BinOp("-",$1,$3,(fun x -> fun y -> x-y)) }
-	| term TDIV term						{ BinOp("/",$1,$3,(/)) }
+	| term TDIV term						                        { BinOp("/",$1,$3,(/)) }
 	| TUNOP term                                                    { let (s,f) = $1 in UnOp(s,$2,f) }
 	| TMIN symbset                                                  { let bmin m = try
 	  						                                  IntSet.min_elt m 
