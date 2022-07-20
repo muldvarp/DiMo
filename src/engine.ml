@@ -208,6 +208,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                                   let dual_clause = List.map (function Lit(b,x,ps) -> if b then Ne(x,ps) else Po(x,ps) | _ -> failwith "checkEngine.run: detected non-literal") solution
                                   in
                                   output 1 0 (eachreport true solution models ^ "\n");
+                                  run_output_language props [] params solver outProg;
                                   models <- models + 1;
                                   output 1 1 "Adding new clause ............................ ";
 				  solver#incremental_reset;
@@ -221,7 +222,9 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                                 end)
                            done;
 
-                           run_output_language props [] params solver outProg;
+                           if models = 0 then run_output_language props [] params solver outProg;
+
+
 
                            solver#dispose
 	                 end

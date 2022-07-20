@@ -377,9 +377,10 @@ let rec run_output_language props currentProps params solver program =
             | HasModel ->
                 begin
                     match solver#get_solve_result with
-                        | SolveSatisfiable -> 1
                         | SolveUnsatisfiable -> 0
-                        | _ -> -1
+                        | SolveFailure _ -> -1
+                        | SolveSatisfiable -> 1
+                        | _ -> 1
                 end
             | Prop(x,ts) ->
                 begin
