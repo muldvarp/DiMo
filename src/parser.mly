@@ -1,8 +1,7 @@
 /* File parser.mly */
 /* The Header */
 %{
-  open Alschemes
-  open Output
+  open Types
 %}
       /* The Grammar */
 %token <string> TSTRING
@@ -44,15 +43,15 @@
 /* highest precedence */
 
 %start start             /* the entry point */
-%type <Alschemes.problem>                start
-%type <Alschemes.problem>                main
-%type <string * Alschemes.domain>        param
-%type <Alschemes.domain>                 domain
-%type <Alschemes.alScheme>               scheme
-%type <((string * Alschemes.domain) list) * Alschemes.constraints> parameters
-%type <Alschemes.symbSet>                symbset
-%type <Alschemes.intTerm>                term
-%type <Alschemes.intTerm list>           terms
+%type <Types.problem>                                       start
+%type <Types.problem>                                       main
+%type <string * Types.domain>                               param
+%type <Types.domain>                                        domain
+%type <Types.alScheme>                                      scheme
+%type <((string * Types.domain) list) * Types.constraints>  parameters
+%type <Types.symbSet>                                       symbset
+%type <Types.intTerm>                                       term
+%type <Types.intTerm list>                                  terms
 %%
 start:	  main TEOF                                                     { $1 }
 ;

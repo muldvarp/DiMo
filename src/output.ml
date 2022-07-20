@@ -1,5 +1,6 @@
 open Alschemes;;
 open Satwrapper;;
+open Types ;;
 
 let max_col = 40
 let debug_level = ref 0
@@ -16,22 +17,6 @@ let announce_and_do l i s f = if l <= !debug_level then
                                 end
                               else
                                 f
-
-type bexpr = HasModel
-           | BNeg of bexpr
-           | BAnd of bexpr * bexpr
-           | BOr of bexpr * bexpr
-           | Prop of string * (intTerm list)
-           | BComp of intTerm * (int -> int -> bool) * intTerm
-
-type outprog = PSkip
-             | PExit
-             | PPrint of string
-             | PPrintf of string * intTerm list
-             | PITEU of bexpr * outprog * outprog * outprog
-             | PFor of string * intTerm * intTerm * intTerm * outprog
-             | PComp of outprog * outprog
-             | PForEach of string * outprog
 
 let rec run_output_language props currentProps params solver program =
     (* recursive execution of the output language

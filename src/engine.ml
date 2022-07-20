@@ -1,5 +1,6 @@
 open Enumerators;;
 open Alschemes;;
+open Types;;
 open PropFormula;;
 open Basics;;
 open Satwrapper;;

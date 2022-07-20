@@ -4,7 +4,6 @@ open Enumerators;;
 open Engine ;;
 open Arg;;
 open Basics;;
-open Output;;
 
 module CommandLine =
 struct
