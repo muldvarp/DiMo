@@ -356,8 +356,10 @@ let normaloutput = [ Text("Instance "); WaitFor ParameterEvaluation; FillWithDot
 
 let rec run_output_language props currentProps params solver program =
     (* recursive execution of the output language
-    params: props: Set of the used props in the problem definition.
-            currentPops: TODO
+    params: props: StringSet; Set of the used props in the problem definition.
+            currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                   variables over propositions. The StringSet contains the propositions
+                                                   still to be processed and has the current value at position 0.
             params: (string, domain) list; the parameter values.
             solver: solver; the solver of the formulas, not of the output.
             program: outprog; output language programm.
@@ -366,7 +368,13 @@ let rec run_output_language props currentProps params solver program =
 
     (*Auxiliary functions*)
      let get_StringSet_for_var variable currentProps =
-        (*TODO*)
+        (* returns the StringSet describing the propositions still to be processed for a given variable.
+        params: variable: string; The given variable
+                currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                    variables over propositions. The StringSet contains the propositions
+                                                    still to be processed and has the current value at position 0.
+        return: StringSet;
+         *)
         let rec aux = function
             | (v, set)::tail -> if v = variable then set else aux tail
             | [] -> failwith "For this variable exists no Set."
@@ -375,17 +383,29 @@ let rec run_output_language props currentProps params solver program =
     in
 
     let get_current_prop_of_var variable currentProps =
-        (*TODO*)
+        (* returns the currently iteration value for a variable.
+        params: variable: string; The given variable
+                currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                    variables over propositions. The StringSet contains the propositions
+                                                    still to be processed and has the current value at position 0.
+        return: string;
+        *)
         let stringSetOfProp =  (get_StringSet_for_var variable currentProps) in
         if StringSet.is_empty stringSetOfProp then failwith "The StringSet of the current propositions is empty.";
         StringSet.choose  stringSetOfProp
     in
 
-    let if_prop_in_currentProps variabelName currentProps =
-        (*TODO*)
+    let if_prop_in_currentProps variable currentProps =
+        (* Check if variable in currentProps.
+        params: variable: string; The given variable
+                currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                    variables over propositions. The StringSet contains the propositions
+                                                    still to be processed and has the current value at position 0.
+        return: bool;
+        *)
         let rec aux = function
             | [] -> false
-            | (v, _)::tail ->   if v = variabelName then true
+            | (v, _)::tail ->   if v = variable then true
                                 else aux tail
         in
         aux currentProps
@@ -550,18 +570,35 @@ let rec run_output_language props currentProps params solver program =
         else auxBackward (add_new_parameter parameters variableName startValue) startValue in
 
     let prog_for_each variableName subProg =
-        (*TODO*)
+        (*Iteration over each Proposition.
+        params: variableName: string; the name of the iteration variable.
+                subProg: outprog; a program which is executed in the loop body.
+        return: None
+        *)
 
         let if_prop_name_used newName currentProps props =
-            (*TODO*)
+            (*Check if a name is used in currentProps or in the propositions
+            params: newName: string; the variable name for this we want to check if it in.
+                    currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                    variables over propositions. The StringSet contains the propositions
+                                                    still to be processed and has the current value at position 0.
+                    props: StringSet; Set of the used props in the problem definition.
+            return: bool;
+            *)
             if (StringSet.mem newName props) then true
             else (if_prop_in_currentProps newName currentProps)
         in
 
         let updateProp variable currentProps =
-            (*TODO*)
+            (*Update a iteration variable over Propositions
+            params: variable: string; the name of the to updated variable.
+                    currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                    variables over propositions. The StringSet contains the propositions
+                                                        still to be processed and has the current value at position 0.
+            return: string, StringSet) list; the updated iteration list over propositions.
+            *)
             let rec aux updated = function
-                (*TODO*)
+                (*Auxiliary function for the update *)
                 | [] -> updated
                 | (v, set)::tail -> if v = variable
                                     then begin
@@ -576,13 +613,14 @@ let rec run_output_language props currentProps params solver program =
             aux []  currentProps
         in
 
-        let check_if_prop_is_not_empty variable currentProps =
-            (*TODO*)
-            let stringSet = get_StringSet_for_var variable currentProps in
-            StringSet.is_empty stringSet
-        in
-
         let rec prop_iteration variable currentProps =
+            (*Recursive iteration over the proportions
+            params: variable: string; the iteration variable;
+                    currentPops: (string, StringSet) list; List of iteration variables over propositions. List of iteration
+                                                    variables over propositions. The StringSet contains the propositions
+                                                    still to be processed and has the current value at position 0.
+            return None
+            *)
             run_output_language props currentProps params solver subProg;
             let updatedProps = updateProp variable currentProps in
             if (if_prop_in_currentProps variable updatedProps) then prop_iteration variable updatedProps
@@ -682,7 +720,8 @@ let rec run_output_language props currentProps params solver program =
             | Prop(x,ts) ->
                 begin
                     let getProp x =
-                        (*TODO*)
+                        (*Check if the given string a iteration variable, then return the current propositions for this
+                         variable. *)
                         if (if_prop_in_currentProps x currentProps) then (get_current_prop_of_var x currentProps)
                         else x
                     in
