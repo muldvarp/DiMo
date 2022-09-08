@@ -15,7 +15,7 @@
 %token TAND TOR TNEG TIMP TBIIMP TTRUE TFALSE
 %token TALL TSOME TFOR TDO TDONE
 %token TCOLON TDOT TSEMICOLON
-%token TLPAREN TRPAREN TLBRACE TRBRACE TLBRACKET TRBRACKET
+%token TLPAREN TRPAREN TLBRACE TRBRACE
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
@@ -195,7 +195,7 @@ outprog:
     | TSKIP                                                             { PSkip }
     | TEXIT                                                             { PExit }
 	| TPRINT TSTRING                                                    { PPrint($2) }
-	| TPRINTF TSTRING TLBRACKET paramorconsts TRBRACKET                 { PPrintf($2, $4)}
+	| TPRINTF TSTRING TLPAREN paramorconsts TRPAREN                     { PPrintf($2, $4)}
 	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog TENDIF       { PITEU($2,$4, $6, $8) }
 	| TIF bexpr TTHEN outprog TELSE outprog TENDIF                      { PITEU($2,$4, $6, PSkip) }
 	| TIF bexpr TTHEN outprog TUNDEF outprog TENDIF                     { PITEU($2,$4, PSkip, $6) }
