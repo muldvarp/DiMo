@@ -195,7 +195,7 @@ outprog:
     | TSKIP                                                             { PSkip }
     | TEXIT                                                             { PExit }
 	| TPRINT TSTRING                                                    { PPrint($2) }
-	| TPRINTF TSTRING TLBRACKET paramorconsts TRBRACKET                 { PPrintf($2, $4)}
+	| TPRINTF TSTRING TLPAREN terms TRPAREN                             { PPrintf($2, $4)}
 	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog TENDIF       { PITEU($2,$4, $6, $8) }
 	| TIF bexpr TTHEN outprog TELSE outprog TENDIF                      { PITEU($2,$4, $6, PSkip) }
 	| TIF bexpr TTHEN outprog TUNDEF outprog TENDIF                     { PITEU($2,$4, PSkip, $6) }
