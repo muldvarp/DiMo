@@ -75,6 +75,8 @@ rule token = parse
  | ')'                                                  { TRPAREN }
  | '{'                                                  { TLBRACE }
  | '}'                                                  { TRBRACE }
+ | '['                                                  { TLBRACKET }
+ | ']'                                                  { TRBRACKET }
  | ".."                                                 { TDOTS }
  | '.'                                                  { TDOT }
  | ':'                                                  { TCOLON }
