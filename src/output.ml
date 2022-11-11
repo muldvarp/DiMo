@@ -395,11 +395,9 @@ let rec run_output_language props currentProps params solver program =
 
                     if not (StringSet.mem prop props) then failwith "Proposition is not defined.";
 
-                    (*TODO bei zugriff außerhalb des Bereichs wertet sich ausdruck nicht zu -1 aus*)
-                    match solver#get_variable_bool (prop,ps) with
-                        | true -> 1
-                        | false -> 0
-                        | _ -> -1
+                    (*Return the value of the variable*)
+                    solver#get_variable (prop,ps)
+
                 end
             | BComp(term1, compOper, term2) ->
                 begin
@@ -409,6 +407,7 @@ let rec run_output_language props currentProps params solver program =
             in
         let evaluation = boolean_evaluation phi in
         match evaluation with
+            (*1:= True  0:= False  -1:=Undefined*)
             | 1  -> run_output_language props currentProps params solver prog_if
             | 0  -> run_output_language props currentProps params solver prog_else
             | -1 -> run_output_language props currentProps params solver prog_undefined

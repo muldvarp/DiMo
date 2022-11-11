@@ -79,7 +79,8 @@ class simpleSatEngine props params constrs sphi defs report outProg =
                            output 1 0 (showCNF phi'' ^ "\n");
 
                            output 1 1 "Getting new solver ........................... ";
-                           let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) in
+
+                           let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) None in
                            output 1 0 "done.\n";
 
                            (try
@@ -89,7 +90,7 @@ class simpleSatEngine props params constrs sphi defs report outProg =
                                                                              cls))
                                phi'';
                              output 1 0 "done.\n";
-                             
+
                              output 1 1 "Solving ...................................... ";
                              solver#solve;
                            
@@ -175,7 +176,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport outProg 
                            output 1 0 (showCNF phi'' ^ "\n");
                            
                            output 1 1 "Getting new solver ........................... ";
-                           let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) in
+                           let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) None in
                            output 1 0 "done.\n";
                            
                            output 1 1 "Adding clauses ............................... ";
@@ -294,7 +295,7 @@ class simplePi2Engine props params constrs sphi spsi defs report =
                            output 1 0 (showCNF phi'' ^ "\n");
                            
                            output 1 1 "Getting new solver #1 ........................ ";
-                           let solver_phi = new Satwrapper.satWrapper (Satsolvers.get_default ()) in
+                           let solver_phi = new Satwrapper.satWrapper (Satsolvers.get_default ()) None in
                            output 1 0 "done.\n";
                            
 			   output 1 1 "Setting up second formula ....................\n";
@@ -312,7 +313,7 @@ class simplePi2Engine props params constrs sphi spsi defs report =
                            output 1 0 (showCNF psi'' ^ "\n");
 
                            output 1 1 "Getting new solver #2 ........................ ";
-                           let solver_psi = new Satwrapper.satWrapper (Satsolvers.get_default ()) in
+                           let solver_psi = new Satwrapper.satWrapper (Satsolvers.get_default ()) None in
                            output 1 0 "done.\n";
 
                            output 1 1 "Adding clauses of 1st formula ................ ";
