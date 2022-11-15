@@ -1,0 +1,14 @@
+OASISFormat: 0.4
+Name:        DiMo
+Version:     0.1
+Synopsis:    A tool for discrete modelling in propositional logic
+Authors:     Martin Lange, Maurice Herwig
+License:     BSD-3-clause
+Plugins:     META (>= 0.4)
+BuildTools:  ocamlbuild
+Executable dimo
+  Path:           src
+  BuildDepends:   ocaml-sat-solvers
+  MainIs:         dimo.ml
+  CompiledObject: best
+  NativeOpt:      -thread
