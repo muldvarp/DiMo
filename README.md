@@ -10,7 +10,7 @@ Installation
 2. Issue the following commands in order to obtain all necessary packages and the right OCaml compiler.
 
 ```
-opam switch 4.07.0
+opam switch 4.08.0
 eval `opam config env` 
 opam install ocamlbuild ocamlfind ocaml-sat-solvers
 ```

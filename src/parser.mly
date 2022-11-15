@@ -1,7 +1,7 @@
 /* File parser.mly */
 /* The Header */
 %{
-  open Alschemes		   
+  open Types
 %}
       /* The Grammar */
 %token <string> TSTRING
@@ -15,14 +15,16 @@
 %token TAND TOR TNEG TIMP TBIIMP TTRUE TFALSE
 %token TALL TSOME TFOR TDO TDONE
 %token TCOLON TDOT TSEMICOLON
-%token TLPAREN TRPAREN TLBRACE TRBRACE
+%token TLPAREN TRPAREN TLBRACE TRBRACE TLBRACKET TRBRACKET
 %token TCOMMA TDOTS
 %token TNAT
 %token TPROPOSITIONS TPARAMETERS TFORMULAS TWITH TSATISFIABLE TVALID TEQUIVALENT TMODELS TGENEQUIV TTO TOUTPUT
-%token TSKIP TPRINT TIF TTHEN TELSE
+%token TSKIP TEXIT TPRINT TPRINTF TIF TTHEN TELSE TENDIF TUNDEF TSTEP TOF TFROM
+%token THASMODEL
 %token <(int -> int -> bool)> TCOMP
 %token TEQ
 %token TEOF
+
 
 /* lowest precedence */
 %right TCOMMA
@@ -41,22 +43,27 @@
 /* highest precedence */
 
 %start start             /* the entry point */
-%type <Alschemes.problem>                start
-%type <Alschemes.problem>                main
-%type <string * Alschemes.domain>        param
-%type <Alschemes.domain>                 domain
-%type <Alschemes.alScheme>               scheme
-%type <((string * Alschemes.domain) list) * Alschemes.constraints> parameters
-%type <Alschemes.symbSet>                symbset
-%type <Alschemes.intTerm>                term
-%type <Alschemes.intTerm list>           terms
+%type <Types.problem>                                       start
+%type <Types.problem>                                       main
+%type <string * Types.domain>                               param
+%type <Types.domain>                                        domain
+%type <Types.alScheme>                                      scheme
+%type <((string * Types.domain) list) * Types.constraints>  parameters
+%type <Types.symbSet>                                       symbset
+%type <Types.intTerm>                                       term
+%type <Types.intTerm list>                                  terms
 %%
 start:	  main TEOF                                                     { $1 }
 ;
-main:	  TSATISFIABLE scheme propositions parameters definitions output           { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5) }
-	| TVALID scheme propositions parameters definitions output                 { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5) }
-	| TEQUIVALENT scheme TTO scheme propositions parameters definitions output { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
-	| TMODELS scheme propositions parameters definitions output                { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5) }
+main:
+    | TSATISFIABLE scheme propositions parameters definitions TOUTPUT outprog
+        { let (params,constrs) = $4 in ProblemSat($3,params,constrs,$2,$5, $7) }
+	| TVALID scheme propositions parameters definitions TOUTPUT outprog
+	    { let (params,constrs) = $4 in ProblemVal($3,params,constrs,$2,$5, $7) }
+	| TEQUIVALENT scheme TTO scheme propositions parameters definitions
+	    { let (params,constrs) = $6 in ProblemEquiv($5,params,constrs,$2,$4,$7) }
+	| TMODELS scheme propositions parameters definitions TOUTPUT outprog
+	    { let (params,constrs) = $4 in ProblemModels($3,params,constrs,$2,$5, $7) }
 
 ;
 propositions:                                                           { StringSet.empty }
@@ -160,12 +167,13 @@ symbset:
 
 term:
 	  TINT                                                          { Const($1) }
+	| TNEG term                                                     { BinOp("-",Const(0), $2,(fun x -> fun y -> x-y)) }
 	| TPARAM                                                        { Param($1) }
 	| term TBINOP term                                              { let (s,f) = $2 in BinOp(s,$1,$3,f) }
-	| term TPLUS term						{ BinOp("+",$1,$3,(+)) }
-	| term TMULT term						{ BinOp("*",$1,$3,(fun x -> fun y -> x*y)) }
+	| term TPLUS term						                        { BinOp("+",$1,$3,(+)) }
+	| term TMULT term						                        { BinOp("*",$1,$3,(fun x -> fun y -> x*y)) }
 	| term TNEG term                                                { BinOp("-",$1,$3,(fun x -> fun y -> x-y)) }
-	| term TDIV term						{ BinOp("/",$1,$3,(/)) }
+	| term TDIV term						                        { BinOp("/",$1,$3,(/)) }
 	| TUNOP term                                                    { let (s,f) = $1 in UnOp(s,$2,f) }
 	| TMIN symbset                                                  { let bmin m = try
 	  						                                  IntSet.min_elt m 
@@ -183,26 +191,28 @@ terms:
 	| term TCOMMA terms                                             { $1 :: $3 }
 ;
 
-output:
-          TOUTPUT outprog                                               { $2 }
-;
-
 outprog:
-          TSKIP                                                         { PSkip }	    
-	| TPRINT TSTRING                                                { PPRint($2) }
-	| TIF bexpr TTHEN outprog TELSE outprog                         { PITE($2,$4,$6) }
-	| TIF bexpr TTHEN outprog                                       { PITE($2,$4,PSkip) }
-        | TFOR TVAR TEQ term TTO term TDO outprog TDONE                 { PFor($2,$4,BinOp("+",$4,TCONST(1),(+)),$6,$8) } 
-        | TFOR TVAR TEQ term TCOMMA term TTO term TDO outprog TDONE     { PFor($2,$4,$6,$8,$10) } 
-	| outprog TSEMICOLON outprog                                    { PComp($1,$3) }
-	| TLPAREN outprog TRPAREN                                       { $2 }   
+    | TSKIP                                                             { PSkip }
+    | TEXIT                                                             { PExit }
+	| TPRINT TSTRING                                                    { PPrint($2) }
+	| TPRINTF TSTRING TLPAREN terms TRPAREN                             { PPrintf($2, $4)}
+	| TIF bexpr TTHEN outprog TELSE outprog TUNDEF outprog TENDIF       { PITEU($2,$4, $6, $8) }
+	| TIF bexpr TTHEN outprog TELSE outprog TENDIF                      { PITEU($2,$4, $6, PSkip) }
+	| TIF bexpr TTHEN outprog TUNDEF outprog TENDIF                     { PITEU($2,$4, PSkip, $6) }
+	| TIF bexpr TTHEN outprog TENDIF                                    { PITEU($2,$4, PSkip, PSkip) }
+	| TFOR TVAR TOF TPROPOSITIONS TDO outprog TDONE                     { PForEach($2, $6) }
+	| TFOR TPARAM TFROM term TTO term TDO outprog TDONE                 { PFor($2, $4, $6, Const(1), $8)}
+	| TFOR TPARAM TFROM term TTO term TSTEP term TDO outprog TDONE      { PFor($2, $4, $6,$8, $10)}
+	| outprog outprog                                                   { PComp($1,$2) }
 ;
 
 bexpr:
-	  THASMODEL                                                     { HasModel }
-	| proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
-	                                                                              | _ -> failwith "Parser failure. Cannot match proposition." } 
-	| TNEG bexpr                                                    { BNeg($2) }
-	| bexpr TAND bexpr                                              { BAnd($1,$3) }
-	| bexpr TOR bexpr                                               { BOr($1,$3) }
+    | TNEG bexpr                                                    { BNeg($2) }
+    | bexpr TAND bexpr                                              { BAnd($1,$3) }
+    | bexpr TOR bexpr                                               { BOr($1,$3) }
+    | THASMODEL                                                     { HasModel }
+    | proposition                                                   { match $1 with SPred(x,ps) -> Prop(x,ps)
+                                                                        | _ -> failwith "Parser failure. Cannot match proposition." }
+    | term TEQ term                                                 { BComp($1, (=), $3) }
+    | term TCOMP term                                               { BComp($1, $2, $3)}
 ;
