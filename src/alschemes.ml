@@ -1,23 +1,6 @@
 open Enumerators ;;
 open PropFormula ;;
-
-module IntSet = Set.Make(struct
-                    type t = int
-                    let compare = compare
-                  end);;
-
-
-type intTerm = Const of int
-             | Param of string
-             | BinOp of string * intTerm * intTerm * (int -> int -> int) 
-             | UnOp of string * intTerm * (int -> int)
-             | SetOp of string * symbSet * (IntSet.t -> int) 
-and symbSet = SmallSet of intTerm list
-            | Enumeration of intTerm * intTerm * intTerm
-            | BinSetOp of string * symbSet * symbSet * (IntSet.t -> IntSet.t -> IntSet.t)
-(*             | Union of symbSet * symbSet
-             | Isect of symbSet * symbSet
-             | Diff of symbSet * symbSet *)
+open Types ;;
 
 let rec compareIntTerm =
   let order = function Const _ -> 0
@@ -67,39 +50,6 @@ and compareSymbSet =
         | _ -> failwith "compareSymbSet: cannot handle two different arguments!"
   in
   comp
-  
-type alScheme = STrue
-	      | SFalse
-	      | SPred of string * (intTerm list)
-              (* | SAbbr of string * (intTerm list) *)
-              | SNeg of alScheme
-              | SAnd of alScheme * alScheme
-              | SOr of alScheme * alScheme
-              | SImp of alScheme * alScheme
-              | SBiimp of alScheme * alScheme
-              | SForall of string * symbSet * alScheme
-              | SForsome of string * symbSet * alScheme
-
-
-module StringSet = Set.Make(String) ;;
-
-type propositions = StringSet.t 
-type constraints = (string * (int -> int -> bool) * string) list
-               
-type domain = From of int * int
-            | FromTo of int * int * int
-	    | FinSet of int list
-
-type parameters = (string * domain) list
-(* type scheme = string * (string list) *)
-type definitions = (string * (intTerm list) * alScheme) list
-              
-type problem = ProblemSat of propositions * parameters * constraints * alScheme * definitions
-             | ProblemVal of propositions * parameters * constraints * alScheme * definitions
-             | ProblemEquiv of propositions * parameters * constraints * alScheme * alScheme * definitions
-             | ProblemModels of propositions * parameters * constraints * alScheme * definitions 
-(*             | ProblemGenEquiv of propositions * parameters * constraints * alScheme * alScheme * definitions *)
-
 
 let makeEnumerator =
   let mkOne x = function From(s,t)     -> new natEnumerator x s t None
@@ -217,32 +167,31 @@ let showScheme =
   show
     
 
-
+let rec evalTerm eval = function Const(i)        -> i
+                               | Param(x)        -> (try
+                                                       match ParamEval.find x eval with
+						         Int v -> v
+                                                                    (* | _     -> failwith ("Parameter `" ^ x ^ "´ has wrong type!") *)
+                                                     with Not_found -> failwith ("Undefined parameter `" ^ x ^ "'"))
+                               | BinOp(_,t,t',f) -> f (evalTerm eval t) (evalTerm eval t')
+                               | UnOp(_,t,f)     -> f (evalTerm eval t)
+                               | SetOp(_,m,f)    -> f (evalSet eval m)
+and evalSet eval = function SmallSet(tl)          -> IntSet.of_list (List.map (evalTerm eval) tl)
+                          | Enumeration(t,t',t'') -> let first = evalTerm eval t in
+                                                     let second = evalTerm eval t' in
+                                                     let last = evalTerm eval t'' in
+                                                     let step = second-first in
+                                                     if last < first then
+                                                       IntSet.empty
+                                                     else if step <= 0 then
+                                                       failwith ("Illegal definition of enumeration set: {" ^ string_of_int first ^
+                                                                   (if step <> 1 then "," ^ string_of_int second else "") ^ ",..," ^ string_of_int last ^ "}")
+                                                     else 
+                                                       let rec makeSet m f = if f <= last then makeSet (IntSet.add f m) (f+step) else m in
+                                                       makeSet IntSet.empty first
+                          | BinSetOp(_,m1,m2,f)   -> f (evalSet eval m1) (evalSet eval m2)                                                        
+                                                   
 let instantiate sphi defs eval =
-  let rec evalTerm eval = function Const(i)        -> i
-                                 | Param(x)        -> (try
-                                                        match ParamEval.find x eval with
-						        Int v -> v
-                                                     (* | _     -> failwith ("Parameter `" ^ x ^ "´ has wrong type!") *)
-                                                       with Not_found -> failwith ("Undefined parameter `" ^ x ^ "'"))
-                                 | BinOp(_,t,t',f) -> f (evalTerm eval t) (evalTerm eval t')
-                                 | UnOp(_,t,f)     -> f (evalTerm eval t)
-                                 | SetOp(_,m,f)    -> f (evalSet eval m)
-  and evalSet eval = function SmallSet(tl)          -> IntSet.of_list (List.map (evalTerm eval) tl)
-                            | Enumeration(t,t',t'') -> let first = evalTerm eval t in
-                                                       let second = evalTerm eval t' in
-                                                       let last = evalTerm eval t'' in
-                                                       let step = second-first in
-                                                       if last < first then
-                                                         IntSet.empty
-                                                       else if step <= 0 then
-                                                         failwith ("Illegal definition of enumeration set: {" ^ string_of_int first ^
-                                                                     (if step <> 1 then "," ^ string_of_int second else "") ^ ",..," ^ string_of_int last ^ "}")
-                                                       else 
-                                                         let rec makeSet m f = if f <= last then makeSet (IntSet.add f m) (f+step) else m in
-                                                         makeSet IntSet.empty first
-                            | BinSetOp(_,m1,m2,f)   -> f (evalSet eval m1) (evalSet eval m2)                                                        
-  in
   let rec instScheme pos eval =
     function STrue              -> if pos then And [] else Or []
 	   | SFalse             -> if pos then Or [] else And []
@@ -294,4 +243,3 @@ let instantiate sphi defs eval =
                                      And (List.map (fun v -> instScheme false (ParamEval.add x (Int(v)) eval) sphi) (IntSet.elements (evalSet eval s)))
   in
   instScheme true eval sphi
-	     

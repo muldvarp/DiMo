@@ -1,8 +1,10 @@
 open Enumerators;;
 open Alschemes;;
+open Types;;
 open PropFormula;;
 open Basics;;
 open Satwrapper;;
+open Output;;
 
 
 let timeout = ref 15.0
@@ -21,7 +23,7 @@ class virtual checkEngine =
   end
 
         
-class simpleSatEngine props params constrs sphi defs report = 
+class simpleSatEngine props params constrs sphi defs report outProg =
   object (self)
     inherit checkEngine
 
@@ -77,6 +79,7 @@ class simpleSatEngine props params constrs sphi defs report =
                            output 1 0 (showCNF phi'' ^ "\n");
 
                            output 1 1 "Getting new solver ........................... ";
+
                            let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) None in
                            output 1 0 "done.\n";
 
@@ -87,7 +90,7 @@ class simpleSatEngine props params constrs sphi defs report =
                                                                              cls))
                                phi'';
                              output 1 0 "done.\n";
-                             
+
                              output 1 1 "Solving ...................................... ";
                              solver#solve;
                            
@@ -99,14 +102,16 @@ class simpleSatEngine props params constrs sphi defs report =
                                                                    (List.filter (fun (x,_) -> StringSet.mem x props) props')
                                                       in
                                                       output 1 0 "done.\n";
-                                                      output 0 0 (report eval true lits ^ "\n")
+                                                      output 1 0 (report eval true lits ^ "\n")
                               | SolveUnsatisfiable -> output 1 0 "unsatisfiable!\n";
-                                                      output 0 0 (report eval false [] ^ "\n")
+                                                      output 1 0 (report eval false [] ^ "\n")
                               | SolveFailure s     -> failwith s);
                            with Minisat.Unsat -> begin
                                                    output 1 0 "unsatisfiable!\n";
-                                                   output 0 0 (report eval false [] ^ "\n")
+                                                   output 1 0 (report eval false [] ^ "\n")
                                                  end);
+
+                           run_output_language props [] params solver outProg;
 
                            solver#dispose
 	                 end
@@ -122,7 +127,7 @@ class simpleSatEngine props params constrs sphi defs report =
                     end
   end                                            
 
-class modelsEngine props params constrs sphi defs initreport eachreport = 
+class modelsEngine props params constrs sphi defs initreport eachreport outProg =
   object (self)
     inherit checkEngine
 
@@ -181,7 +186,7 @@ class modelsEngine props params constrs sphi defs initreport eachreport =
                              phi'';
                            output 1 0 "done.\n";
                            
-                           output 0 0 (initreport eval ^ "\n");
+                           output 1 0 (initreport eval ^ "\n");
                            
                            while satisfiable do
                              output 1 1 "Solving ...................................... ";
@@ -203,7 +208,8 @@ class modelsEngine props params constrs sphi defs initreport eachreport =
                                   in
                                   let dual_clause = List.map (function Lit(b,x,ps) -> if b then Ne(x,ps) else Po(x,ps) | _ -> failwith "checkEngine.run: detected non-literal") solution
                                   in
-                                  output 0 0 (eachreport true solution models ^ "\n");
+                                  output 1 0 (eachreport true solution models ^ "\n");
+                                  run_output_language props [] params solver outProg;
                                   models <- models + 1;
                                   output 1 1 "Adding new clause ............................ ";
 				  solver#incremental_reset;
@@ -213,9 +219,14 @@ class modelsEngine props params constrs sphi defs initreport eachreport =
                               else
                                 begin
                                   output 1 0 "unsatisfiable!\n";
-                                  output 0 0 (eachreport false [] models ^ "\n")
+                                  output 1 0 (eachreport false [] models ^ "\n")
                                 end)
                            done;
+
+                           if models = 0 then run_output_language props [] params solver outProg;
+
+
+
                            solver#dispose
 	                 end
                        else

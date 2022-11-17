@@ -64,7 +64,7 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
 
         output 1 0 "Constructing engine for formula scheme .....\n";
         let engine = match problem with
-            ProblemSat(props, params, constrs, sphi, defs)         ->
+            ProblemSat(props, params, constrs, sphi, defs, outProg)         ->
              output 1 1 (showScheme sphi ^ "\n");
              let report =
                fun eval ->
@@ -74,8 +74,8 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
                              (if b then "" else "un") ^ "satisfiable." ^
                                (if b then "\n  Satisfying assignment: " ^ showModel lits else "")
              in
-             new simpleSatEngine props params constrs sphi defs report 
-          | ProblemVal(props, params, constrs, sphi, defs)         ->
+             new simpleSatEngine props params constrs sphi defs report outProg
+          | ProblemVal(props, params, constrs, sphi, defs, outProg)         ->
              output 1 1 (showScheme sphi ^ "\n");
              let report =
                fun eval ->
@@ -85,7 +85,7 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
                              (if not b then "" else "in") ^ "valid." ^
                                (if b then "\n  Refuting assignment: " ^ showModel lits else "")
              in
-             new simpleSatEngine props params constrs (SNeg sphi) defs report
+             new simpleSatEngine props params constrs (SNeg sphi) defs report outProg
           | ProblemEquiv(props, params, constrs, sphi, spsi, defs) ->
              output 1 1 ("#1: " ^ showScheme sphi ^ "\n");
              output 1 1 ("#2: " ^ showScheme spsi ^ "\n");
@@ -102,7 +102,7 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
                                               (if not b then "\n  A model of the second but not the first formula is: " ^ showModel lits else ""))
              in
              new combinedEngine [| esound; ecomplete |]
-          | ProblemModels(props, params, constrs, sphi, defs) ->
+          | ProblemModels(props, params, constrs, sphi, defs, outProg) ->
              output 1 1 (showScheme sphi ^ "\n");
              let initreport = fun eval -> let vs = showEval eval in
                                           "Instance " ^ vs ^ " " ^ String.make (max 0 (38 - (String.length vs))) '.' ^ " "
@@ -110,8 +110,12 @@ let _ = output 1 0 "Parsing arguments ..................................... ";
              let eachreport = fun b -> fun lits -> fun n -> if not b then (string_of_int n ^ " model" ^ (if n<>1 then "s" else "") ^ " found.")
                                                             else "  Found model " ^ showModel lits 
              in
-             new modelsEngine props params constrs sphi defs initreport eachreport
+             new modelsEngine props params constrs sphi defs initreport eachreport outProg
         in
         output 1 0 "Running engine .................................\n";
-        engine#run
+        engine#run;
+
+
+
+
                                                                        
